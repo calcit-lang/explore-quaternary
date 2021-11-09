@@ -3,6 +3,8 @@ body {
   margin: 0;
   overscroll-behavior-y: none;
   overscroll-behavior-x: none;
+
+  user-select: none;
 }
 
 body * {
@@ -29,4 +31,14 @@ body * {
 
 ::-webkit-resizer {
   background-color:transparent;
+}
+
+.controller {
+  color: hsla(0, 100%, 50%, 0.5);
+  border-bottom: 1px solid #eee;
+}
+
+.controller:hover {
+  color: hsla(0, 100%, 20%, 1);
+  border-bottom: 1px solid #22f;
 }
