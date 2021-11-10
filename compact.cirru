@@ -7,8 +7,10 @@
     |app.comp.container $ {}
       :ns $ quote
         ns app.comp.container $ :require (respo-ui.core :as ui)
-          respo.core :refer $ defcomp defeffect <> >> div button textarea span input
+          respo.util.format :refer $ hsl
+          respo.core :refer $ defcomp defeffect <> >> div button textarea span input list->
           respo.comp.space :refer $ =<
+          respo.comp.inspect :refer $ comp-inspect
           reel.comp.reel :refer $ comp-reel
           respo-md.comp.md :refer $ comp-md
           app.config :refer $ dev?
@@ -20,25 +22,91 @@
                 states $ :states store
                 cursor $ or (:cursor states) ([])
                 state $ or (:data states)
-                  {} $ :content "\""
+                  {} (:content "\"") (:size 1)
               div
-                {} $ :style (merge ui/global ui/row)
-                textarea $ {}
-                  :value $ :content state
-                  :placeholder "\"Content"
-                  :style $ merge ui/expand ui/textarea
-                    {} $ :height 320
-                  :on-input $ fn (e d!)
-                    d! cursor $ assoc state :content (:value e)
-                =< 8 nil
-                div
-                  {} $ :style ui/expand
-                  comp-md "|This is some content with `code`"
-                  =< |8px nil
-                  button $ {} (:style ui/button) (:inner-text "\"Run")
+                {} $ :style (merge ui/global ui/column)
+                div ({})
+                  span $ {} (:style style-button) (:inner-text "\"Less")
                     :on-click $ fn (e d!)
-                      println $ :content state
+                      if
+                        > (:size state) 1
+                        d! cursor $ update state :size dec
+                  span $ {} (:style style-button) (:inner-text "\"More")
+                    :on-click $ fn (e d!)
+                      d! cursor $ update state :size inc
+                list->
+                  {} $ :style
+                    merge ui/row $ {} (:flex-wrap :wrap)
+                  -> (:size state) (or 1) (range)
+                    map $ fn (idx)
+                      [] idx $ div
+                        {} $ :style
+                          {} (:margin "\"8px") (:padding 8)
+                            :border $ str "\"1px solid " (hsl 0 0 90)
+                        div
+                          {} $ :style
+                            {} (:text-align :center) (:line-height "\"16px")
+                          <> $ str idx
+                        comp-quaternary $ >> states idx
                 when dev? $ comp-reel (>> states :reel) reel ({})
+                when dev? $ comp-inspect "\"reel" states
+                  {} $ :bottom 0
+        |comp-leaf $ quote
+          defcomp comp-leaf (v? on-change)
+            div $ {}
+              :style $ {} (:width 16) (:height 16) (:cursor :pointer)
+                :background-color $ if v? (hsl 200 80 50) (hsl 0 0 80)
+              :on-click $ fn (e d!)
+                on-change (not v?) d!
+        |comp-branch $ quote
+          defcomp comp-branch (states v on-change)
+            let
+                cursor $ :cursor states
+              div
+                {} $ :style ({})
+                div
+                  {} (:class-name "\"controller")
+                    :style $ {} (:text-align :center) (:line-height "\"10px") (:font-size 12) (:cursor :pointer)
+                    :on-click $ fn (e d!)
+                      if (keyword? v)
+                        do (on-change false d!) (d! :clear-states cursor)
+                        on-change :branch d!
+                  <> $ if (keyword? v) "\"x" "\"Br"
+                if (bool? v)
+                  comp-leaf v $ fn (next d!) (on-change next d!)
+                  comp-quaternary states 
+        |comp-quaternary $ quote
+          defcomp comp-quaternary (states)
+            let
+                cursor $ :cursor states
+                state $ or (:data states)
+                  {} (:left? false) (:right? false) (:a false) (:b false)
+              div
+                {} $ :style
+                  merge ui/row $ {} (:display :inline-flex)
+                div
+                  {} $ :style
+                    {} $ :padding-top "\"11px"
+                  comp-leaf (:left? state)
+                    fn (v d!)
+                      d! cursor $ assoc state :left? v
+                =< 2 nil
+                comp-branch (>> states :a) (:a state)
+                  fn (v d!)
+                    d! cursor $ assoc state :a v
+                =< 2 nil
+                comp-branch (>> states :b) (:b state)
+                  fn (v d!)
+                    d! cursor $ assoc state :b v
+                =< 2 nil
+                div
+                  {} $ :style
+                    {} $ :padding-top "\"11px"
+                  comp-leaf (:right? state)
+                    fn (v d!)
+                      d! cursor $ assoc state :right? v
+        |style-button $ quote
+          def style-button $ {} (:margin "\"0 6px") (:cursor :pointer) (:font-family ui/font-fancy)
     |app.schema $ {}
       :ns $ quote (ns app.schema)
       :defs $ {}
@@ -51,11 +119,15 @@
         ns app.updater $ :require
           respo.cursor :refer $ update-states
       :defs $ {}
+        |clear-states $ quote
+          defn clear-states (store op-data)
+            dissoc-in store $ prepend op-data :states
         |updater $ quote
           defn updater (store op data op-id op-time)
             case-default op
               do (println "\"unknown op:" op) store
               :states $ update-states store data
+              :clear-states $ clear-states store data
               :hydrate-storage data
     |app.main $ {}
       :ns $ quote
@@ -83,6 +155,7 @@
         |main! $ quote
           defn main! ()
             println "\"Running mode:" $ if config/dev? "\"dev" "\"release"
+            if config/dev? $ load-console-formatter!
             render-app!
             add-watch *reel :changes $ fn (reel prev) (render-app!)
             listen-devtools! |k dispatch!
