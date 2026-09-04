@@ -2,13 +2,17 @@
 Explore Quaternary
 ----
 
-> Respo web page based on [calcit-js](https://github.com/calcit-lang/calcit_runner.rs).
+> Respo web page built with Calcit 0.13.77.
 
 Demo http://repo.calcit-lang.org/explore-quaternary/ .
 
-### Usages
+### Development
 
-_TODO_
+```bash
+caps --ci --strict
+corepack yarn install --immutable
+yarn build
+```
 
 ### Workflow
 
