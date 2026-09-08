@@ -17,11 +17,11 @@ jobs:
   test:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+    - uses: actions/checkout@v5.1.0
       with:
         persist-credentials: false
 
-    - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5
+    - uses: actions/setup-node@v5.0.0
       with:
         node-version: 24
         package-manager-cache: false
@@ -34,7 +34,7 @@ jobs:
         export PATH="$RUNNER_TEMP/bin:$PATH"
         yarn --version
 
-    - uses: calcit-lang/setup-calcit@704b3f5cd6f9ce3bd1e0c926dbdd1d181adb8180 # v1
+    - uses: calcit-lang/setup-calcit@v1.4.0
 
     - name: Install Calcit modules
       run: caps --ci --strict
@@ -60,7 +60,7 @@ jobs:
     - name: Deploy to server
       id: deploy
       if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-      uses: Pendect/action-rsyncer@8e05ffa5c93e5d9c9b167796b26044d2c616b2b9 # v2
+      uses: Pendect/action-rsyncer@v2.0.0
       env:
         DEPLOY_KEY: ${{secrets.rsync_private_key}}
       with:
