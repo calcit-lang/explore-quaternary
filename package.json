@@ -4,7 +4,7 @@
     "build": "calcit calcit.cirru js && vite build --base=./"
   },
   "dependencies": {
-    "@calcit/procs": "0.13.77"
+    "@calcit/procs": "0.14.16"
   },
   "devDependencies": {
     "bottom-tip": "0.1.5",
