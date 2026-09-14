@@ -77,7 +77,7 @@
       :declaredOptional 0
       :deprecatedCalls 0
       :schemaDynamic 1
-      :typeNone 1
+      :typeNone 0
       :typeNotFull 1
       :unresolved 1
       :unsafeCoerce 0
@@ -85,48 +85,12 @@
       :codeNil 0
       :declaredOptional 0
       :deprecatedCalls 0
-      :schemaDynamic 1
-      :typeNone 1
-      :typeNotFull 1
-      :unresolved 1
+      :schemaDynamic 0
+      :typeNone 0
+      :typeNotFull 0
+      :unresolved 0
       :unsafeCoerce 1
     |app.main/mount-target $ {} (:codeDynamic 0)
-      :codeNil 0
-      :declaredOptional 0
-      :deprecatedCalls 0
-      :schemaDynamic 1
-      :typeNone 1
-      :typeNotFull 1
-      :unresolved 1
-      :unsafeCoerce 0
-    |app.main/persist-storage! $ {} (:codeDynamic 0)
-      :codeNil 0
-      :declaredOptional 0
-      :deprecatedCalls 0
-      :schemaDynamic 1
-      :typeNone 1
-      :typeNotFull 1
-      :unresolved 1
-      :unsafeCoerce 0
-    |app.main/reload! $ {} (:codeDynamic 0)
-      :codeNil 0
-      :declaredOptional 0
-      :deprecatedCalls 0
-      :schemaDynamic 1
-      :typeNone 1
-      :typeNotFull 1
-      :unresolved 1
-      :unsafeCoerce 0
-    |app.main/render-app! $ {} (:codeDynamic 0)
-      :codeNil 0
-      :declaredOptional 0
-      :deprecatedCalls 0
-      :schemaDynamic 1
-      :typeNone 1
-      :typeNotFull 1
-      :unresolved 1
-      :unsafeCoerce 0
-    |app.main/repeat! $ {} (:codeDynamic 0)
       :codeNil 0
       :declaredOptional 0
       :deprecatedCalls 0
@@ -148,29 +112,30 @@
       :codeNil 0
       :declaredOptional 0
       :deprecatedCalls 0
-      :schemaDynamic 1
-      :typeNone 1
+      :schemaDynamic 3
+      :typeNone 0
       :typeNotFull 1
-      :unresolved 1
+      :unresolved 3
       :unsafeCoerce 0
     |app.updater/updater $ {} (:codeDynamic 0)
       :codeNil 0
       :declaredOptional 0
       :deprecatedCalls 0
-      :schemaDynamic 1
-      :typeNone 1
+      :schemaDynamic 3
+      :typeNone 0
       :typeNotFull 1
-      :unresolved 1
+      :unresolved 3
       :unsafeCoerce 0
   :metrics $ {} (:codeDynamic 0)
     :codeNil 4
     :declaredOptional 0
     :deprecatedCalls 0
-    :schemaDynamic 18
-    :typeNone 14
-    :typeNotFull 15
-    :unresolved 22
+    :schemaDynamic 17
+    :typeNone 6
+    :typeNotFull 10
+    :unresolved 21
     :unsafeCoerce 1
-  :scope $ {} (:includeDependencies false)
+  :scope $ {}
+    :includeDependencies false
     :namespace nil
     :namespacePrefix nil

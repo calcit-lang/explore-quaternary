@@ -2,7 +2,7 @@
 Explore Quaternary
 ----
 
-> Respo web page built with Calcit 0.13.77.
+> Respo web page built with Calcit 0.14.16.
 
 Demo http://repo.calcit-lang.org/explore-quaternary/ .
 
