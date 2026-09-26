@@ -29,7 +29,9 @@
                   comp-leaf v $ fn (next d!) (on-change next d!)
                   comp-quaternary states
           :examples $ []
-          :schema $ :: 'Dynamic
+          :schema $ :: 'Fn $ {} (:return 'Dynamic)
+            :args $ [] 'Dynamic 'Dynamic 'Dynamic
+            :features $ #{} :js-ffi
         'comp-container $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defcomp comp-container (reel)
             let
@@ -64,7 +66,9 @@
                 when dev? $ comp-reel (>> states :reel) reel $ {}
                 when dev? $ comp-inspect |reel states $ {} (:bottom 0)
           :examples $ []
-          :schema $ :: 'Dynamic
+          :schema $ :: 'Fn $ {} (:return 'respo.schema/Component)
+            :args $ [] 'Dynamic
+            :features $ #{} :js-ffi
         'comp-leaf $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defcomp comp-leaf (v? on-change)
             div $ {}
@@ -73,7 +77,9 @@
               :on-click $ fn (e d!)
                 on-change (not v?) d!
           :examples $ []
-          :schema $ :: 'Dynamic
+          :schema $ :: 'Fn $ {} (:return 'Dynamic)
+            :args $ [] 'Dynamic 'Dynamic
+            :features $ #{} :js-ffi
         'comp-quaternary $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defcomp comp-quaternary (states)
             let
@@ -103,7 +109,9 @@
                     fn (v d!)
                       d! cursor $ assoc state :right? v
           :examples $ []
-          :schema $ :: 'Dynamic
+          :schema $ :: 'Fn $ {} (:return 'Dynamic)
+            :args $ [] 'Dynamic
+            :features $ #{} :js-ffi
         'style-button $ %{} 'CodeEntry (:doc |)
           :code $ quote $ def style-button
             {} (:margin "|0 6px") (:cursor :pointer) (:font-family ui/font-fancy)
@@ -193,7 +201,9 @@
             :args $ []
         'render-app! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn render-app! ()
-            render! (js/document.querySelector |.app) (comp-container @*reel) dispatch!
+            render! (js/document.querySelector |.app)
+              assert-type (comp-container @*reel) 'respo.schema/Component
+              , dispatch!
           :examples $ []
           :schema $ :: 'Fn $ {} (:return 'Unit)
             :args $ []
