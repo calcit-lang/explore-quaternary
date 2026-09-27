@@ -3,7 +3,7 @@
   :about "|Machine-generated snapshot. Do not edit directly — changes will be overwritten. Use `calcit query` to inspect and `calcit edit`/`calcit tree` to modify. Run `calcit docs agents --contract` before mutations; use `--full` for first orientation or changed contract digest. Manual edits must follow format and schema conventions, then run `calcit edit format`."
   :package |app
   :entries $ {} $ :default
-    {} (:description |) (:init-fn 'app.main/main!) (:mode :native) (:reload-fn 'app.main/reload!)
+    {} (:description |) (:init-fn 'app.main/main!) (:mode :native) (:reload-fn 'app.main/reload!) (:target :browser)
       :feature-policy $ {}
       :modules $ [] |respo.calcit/ |lilac/ |memof/ |respo-ui.calcit/ |respo-markdown.calcit/ |reel.calcit/
       :type-slots $ {}
@@ -29,7 +29,10 @@
                   comp-leaf v $ fn (next d!) (on-change next d!)
                   comp-quaternary states
           :examples $ []
-          :schema $ :: 'Dynamic
+          :schema $ :: 'Fn $ {} (:return 'respo.schema/Component)
+            :args $ [] 'Dynamic 'Dynamic $ :: 'Fn
+              {} (:return 'Unit)
+                :args $ [] 'Dynamic 'Dynamic
         'comp-container $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defcomp comp-container (reel)
             let
@@ -64,7 +67,8 @@
                 when dev? $ comp-reel (>> states :reel) reel $ {}
                 when dev? $ comp-inspect |reel states $ {} (:bottom 0)
           :examples $ []
-          :schema $ :: 'Dynamic
+          :schema $ :: 'Fn $ {} (:return 'respo.schema/Component)
+            :args $ [] 'Dynamic
         'comp-leaf $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defcomp comp-leaf (v? on-change)
             div $ {}
@@ -73,7 +77,10 @@
               :on-click $ fn (e d!)
                 on-change (not v?) d!
           :examples $ []
-          :schema $ :: 'Dynamic
+          :schema $ :: 'Fn $ {} (:return 'respo.schema/Component)
+            :args $ [] 'Bool $ :: 'Fn
+              {} (:return 'Unit)
+                :args $ [] 'Bool 'Dynamic
         'comp-quaternary $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defcomp comp-quaternary (states)
             let
@@ -103,7 +110,8 @@
                     fn (v d!)
                       d! cursor $ assoc state :right? v
           :examples $ []
-          :schema $ :: 'Dynamic
+          :schema $ :: 'Fn $ {} (:return 'respo.schema/Component)
+            :args $ [] 'Dynamic
         'style-button $ %{} 'CodeEntry (:doc |)
           :code $ quote $ def style-button
             {} (:margin "|0 6px") (:cursor :pointer) (:font-family ui/font-fancy)
@@ -155,27 +163,27 @@
             render-app!
             add-watch *reel :changes $ fn (reel prev) (render-app!)
             listen-devtools! |k dispatch!
-            js/window.addEventListener |beforeunload $ fn (event) (persist-storage!)
+            browser/add-event-listener! |beforeunload $ fn (event) (persist-storage!)
             repeat! 60 persist-storage!
             let
-                raw $ js/localStorage.getItem $ :storage-key config/site
-              when (js-present? raw)
-                dispatch! $ :: :hydrate-storage $ parse-cirru-edn (unsafe-coerce raw String)
+                raw $ browser/storage-get $ option:unwrap (:storage-key config/site)
+              when (option:some? raw)
+                dispatch! $ :: :hydrate-storage $ parse-cirru-edn (option:unwrap raw)
             println "|App started."
           :examples $ []
           :schema $ :: 'Fn $ {} (:return 'Unit)
             :args $ []
             :features $ #{} :js-ffi
         'mount-target $ %{} 'CodeEntry (:doc |)
-          :code $ quote $ def mount-target (js/document.querySelector |.app)
+          :code $ quote $ def mount-target
+            option:unwrap $ browser/query-selector |.app
           :examples $ []
-          :schema $ :: 'Dynamic
+          :schema $ :: 'js-ffi.browser/DomElementHost
         'persist-storage! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn persist-storage! ()
-            do
-              js/localStorage.setItem (:storage-key config/site)
-                format-cirru-edn $ reel-schema/read-field @*reel :store
-              , &unit
+            browser/storage-set!
+              option:unwrap $ :storage-key config/site
+              format-cirru-edn $ reel-schema/read-field @*reel :store
           :examples $ []
           :schema $ :: 'Fn $ {} (:return 'Unit)
             :args $ []
@@ -193,18 +201,17 @@
             :args $ []
         'render-app! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn render-app! ()
-            render! (js/document.querySelector |.app) (comp-container @*reel) dispatch!
+            render! mount-target (comp-container @*reel) dispatch!
           :examples $ []
           :schema $ :: 'Fn $ {} (:return 'Unit)
             :args $ []
             :features $ #{} :js-ffi
         'repeat! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn repeat! (duration cb)
-            do
-              js/setTimeout
-                fn () (cb) (repeat! duration cb)
-                * 1000 duration
-              , &unit
+            browser/set-timeout!
+              fn () (cb) (repeat! duration cb)
+              * 1000 duration
+            , &unit
           :examples $ []
           :schema $ :: 'Fn $ {} (:return 'Unit)
             :args $ [] 'Number $ :: 'Fn
@@ -224,6 +231,7 @@
             app.config :as config
             |./calcit.build-errors :default build-errors
             |bottom-tip :default hud!
+            js-ffi.browser :as browser
     'app.schema $ %{} 'FileEntry
       :defs $ {} $ 'store
         %{} 'CodeEntry (:doc |)
@@ -252,6 +260,16 @@
           :examples $ []
           :schema $ :: 'Fn $ {} (:return 'Dynamic)
             :args $ [] 'Dynamic 'Dynamic 'String 'Number
+          :tests $ [] $ %{} 'TestEntry (:name |hydrates-stored-state)
+            :code $ quote $ is=
+              {} $ :counter 2
+              updater
+                {} $ :counter 1
+                :: :hydrate-storage $ {} $ :counter 2
+                , |test 0
+            :tags $ #{} :storage :unit
       :ns $ %{} 'NsEntry (:doc |)
         :code $ quote $ ns app.updater
-          :require $ respo.cursor :refer $ update-states
+          :require
+            respo.cursor :refer $ update-states
+            calcit.test :refer $ is=
