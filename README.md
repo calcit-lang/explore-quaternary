@@ -1,23 +1,25 @@
 
-Explore Quaternary
-----
+# Explore Quaternary
 
-> Respo web page built with Calcit 0.14.16.
+> 基于 Calcit 0.24.3 与 Respo 的四叉树交互示例。浏览器宿主调用统一使用 `js-ffi.browser`。
 
-Demo http://repo.calcit-lang.org/explore-quaternary/ .
+演示：http://repo.calcit-lang.org/explore-quaternary/ 。
 
-### Development
+### 开发与验证
 
 ```bash
 caps --ci --strict
 corepack yarn install --immutable
-yarn build
+calcit calcit.cirru --check-only
+calcit calcit.cirru analyze check-public --ns app.main --ns app.comp.container --ns app.updater --ns app.config --ns app.schema --summary-only
+calcit calcit.cirru test --require-match
+fnm exec --using v24.4.1 yarn build
 ```
 
-### Workflow
+### CI 工作流
 
 https://github.com/calcit-lang/respo-calcit-workflow
 
-### License
+### 许可证
 
 MIT
