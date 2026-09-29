@@ -1,5 +1,5 @@
 {
-  "packageManager": "yarn@4.12.0",
+  "packageManager": "yarn@4.18.0",
   "scripts": {
     "build": "calcit calcit.cirru js && vite build --base=./"
   },
