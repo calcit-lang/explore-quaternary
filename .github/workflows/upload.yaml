@@ -10,8 +10,8 @@ permissions:
   contents: read
 
 concurrency:
-  group: upload-${{ github.event.pull_request.number || github.ref }}
-  cancel-in-progress: true
+  group: upload-${{ github.event_name == 'pull_request' && github.run_id || github.ref }}
+  cancel-in-progress: false
 
 jobs:
   test:
@@ -52,6 +52,12 @@ jobs:
 
     - name: Validate Snapshot
       run: |
+        set -euo pipefail
+        test "$(calcit --version)" = "0.27.0"
+        test -f calcit.cirru
+        test -f deps.cirru
+        test ! -e compact.cirru
+        test ! -e package.cirru
         calcit calcit.cirru edit format
         git diff --exit-code -- calcit.cirru
         calcit calcit.cirru --check-only
@@ -65,9 +71,11 @@ jobs:
       id: asset-path
       env:
         CDN_ORIGIN: https://cos-sh.tiye.me
+        PR_NUMBER: ${{ github.event.pull_request.number }}
       run: |
+        set -euo pipefail
         if [[ "$GITHUB_EVENT_NAME" == "pull_request" ]]; then
-          asset_prefix="${GITHUB_REPOSITORY}/pr/"
+          asset_prefix="${GITHUB_REPOSITORY}/pr/${PR_NUMBER}/${GITHUB_RUN_ID}/"
         else
           asset_prefix="${GITHUB_REPOSITORY}/"
         fi
