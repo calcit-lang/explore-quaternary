@@ -1,7 +1,9 @@
 {
   "packageManager": "yarn@4.18.0",
   "scripts": {
-    "build": "calcit calcit.cirru js && vite build --base=./"
+    "compile": "calcit calcit.cirru js",
+    "build": "yarn compile && vite build --base=\"${VITE_BASE_URL:-./}\"",
+    "dev": "yarn compile && vite"
   },
   "dependencies": {
     "@calcit/procs": "0.27.0"
