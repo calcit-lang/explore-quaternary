@@ -8,3 +8,6 @@ dist/
 .yarn/
 .pnp.cjs
 .pnp.loader.mjs
+.calcit/
+compact.cirru
+package.cirru
