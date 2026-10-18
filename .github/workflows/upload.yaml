@@ -41,10 +41,8 @@ jobs:
         caps-version: "0.1.1"
         deps-file: deps.cirru
 
-    # Published Respo modules still request preceding compatible releases, so strict Caps
-    # resolution would reject the otherwise compatible highest SemVer set.
     - name: Install Calcit modules
-      run: caps --ci
+      run: caps --strict --ci
 
     - name: Install JavaScript dependencies
       run: yarn install --immutable

@@ -13,7 +13,7 @@ PR 前端资源按 `pr/<number>/<run-id>/<attempt>/` 隔离；Vite 与 COS Actio
 ### 开发与验证
 
 ```bash
-caps --ci
+caps --strict --ci
 corepack yarn install --immutable
 caps verify --toolchain
 calcit calcit.cirru --check-only --all-defs
@@ -23,8 +23,8 @@ yarn build
 yarn dev
 ```
 
-正式 Respo 模块的传递版本请求仍有差异，当前 CI 使用非严格 Caps 解析；
-不宣称严格依赖解析或全部类型债务已经完成。CI 同时要求零退役调用和零动态方法派发。
+当前正式模块的依赖请求已对齐，CI 使用 strict Caps 解析，并要求零退役调用和零动态方法派发。
+通过严格检查不代表全部类型债务已经完成。
 
 Reel 使用泛型 `reel.typed/State<Enum, Map<Tag, Dynamic>>`，状态更新通过单个 Enum 操作派发。
 游标、数字和叶节点 Bool 在开放状态入口校验；保留 `workflow` 存储键、原存档 Map 的未知字段、
