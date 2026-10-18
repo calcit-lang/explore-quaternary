@@ -3,9 +3,9 @@
   :about "|Machine-generated snapshot. Do not edit directly — changes will be overwritten. Use `calcit query` to inspect and `calcit edit`/`calcit tree` to modify. Run `calcit docs agents --contract` before mutations; use `--full` for first orientation or changed contract digest. Manual edits must follow format and schema conventions, then run `calcit edit format`."
   :package |app
   :entries $ {} $ :default
-    {} (:description |) (:init-fn 'app.main/main!) (:mode :native) (:reload-fn 'app.main/reload!) (:target :browser)
+    {} (:description |) (:init-fn 'app.main/main!) (:mode :js) (:reload-fn 'app.main/reload!) (:target :browser)
       :feature-policy $ {}
-      :modules $ [] |respo.calcit/ |lilac/ |memof/ |respo-ui.calcit/ |respo-markdown.calcit/ |reel.calcit/
+      :modules $ [] |respo.calcit/ |respo-ui.calcit/ |reel.calcit/
       :type-slots $ {}
   :files $ {}
     'app.comp.container $ %{} 'FileEntry
@@ -13,46 +13,64 @@
         'comp-branch $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defcomp comp-branch (states v on-change)
             let
-                cursor $ read-field states :cursor
+                cursor $ decode-map-as (read-field states :cursor) (:: 'List 'Dynamic)
               div
                 {} $ :style $ {}
                 div
                   {} (:class-name |controller)
                     :style $ {} (:text-align |center) (:line-height |10px) (:font-size 12) (:cursor |pointer)
                     :on-click $ fn (e d!)
+                      hint-fn $ {} (:return 'Unit)
+                        :args $ [] (:: 'Map 'Tag 'Dynamic)
+                          :: 'Fn $ {} (:return 'Unit) (:rest 'Dynamic)
+                            :args $ [] 'Dynamic
                       if (tag? v)
                         do (on-change false d!)
                           d! $ :: :clear-states cursor
                         on-change :branch d!
+                      , &unit
                   <> $ if (tag? v) |x |Br
                 if (bool? v)
                   comp-leaf v $ fn (next d!) (on-change next d!)
                   comp-quaternary states
           :examples $ []
           :schema $ :: 'Fn $ {} (:return 'respo.schema/Component)
-            :args $ [] 'Dynamic 'Dynamic $ :: 'Fn
+            :args $ [] (:: 'Map 'Dynamic 'Dynamic) 'Dynamic $ :: 'Fn
               {} (:return 'Unit)
-                :args $ [] 'Dynamic 'Dynamic
+                :args $ [] 'Dynamic $ :: 'Fn
+                  {} (:return 'Unit)
+                    :args $ [] 'Enum
         'comp-container $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defcomp comp-container (reel)
             let
-                store $ read-field reel :store
-                states $ read-field store :states
-                cursor $ either (read-field states :cursor) ([])
-                state $ either (read-field states :data)
-                  {} (:content |) (:size 1)
-                size $ either (read-field state :size) 1
+                store $ :store reel
+                states $ as-states-map $ read-field store :states
+                cursor $ decode-map-as
+                  either (read-field states :cursor) ([])
+                  :: 'List 'Dynamic
+                state $ decode-map-as
+                  either (read-field states :data)
+                    {} (:content |) (:size 1)
+                  :: 'Map 'Tag 'Dynamic
+                size $ decode-map-as
+                  either (read-field state :size) 1
+                  , 'Number
               div
                 {} $ :style $ merge ui/global ui/column
                 div ({})
                   span $ {} (:style style-button) (:inner-text |Less)
                     :on-click $ fn (e d!)
-                      if (> size 1)
-                        d! cursor $ update state :size dec
-                        , nil
+                      when (> size 1)
+                        d! $ :: :states cursor $ update state :size
+                          fn (value)
+                            dec $ decode-map-as value 'Number
+                      , &unit
                   span $ {} (:style style-button) (:inner-text |More)
                     :on-click $ fn (e d!)
-                      d! cursor $ update state :size inc
+                      d! $ :: :states cursor $ update state :size
+                        fn (value)
+                          inc $ decode-map-as value 'Number
+                      , &unit
                 list->
                   {} $ :style $ merge ui/row
                     {} $ :flex-wrap |wrap
@@ -64,68 +82,80 @@
                         {} $ :style $ {} (:text-align |center) (:line-height |16px)
                         <> $ str idx
                       comp-quaternary $ >> states idx
-                when dev? $ comp-reel (>> states :reel) reel $ {}
+                when dev? $ comp-typed-reel (>> states :reel) reel $ {}
                 when dev? $ comp-inspect |reel states $ {} (:bottom 0)
           :examples $ []
           :schema $ :: 'Fn $ {} (:return 'respo.schema/Component)
-            :args $ [] 'Dynamic
+            :args $ [] $ :: 'reel.typed/State 'Enum (:: 'Map 'Tag 'Dynamic)
         'comp-leaf $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defcomp comp-leaf (v? on-change)
             div $ {}
               :style $ {} (:width 16) (:height 16) (:cursor :pointer)
                 :background-color $ if v? (hsl 200 80 50) (hsl 0 0 80)
               :on-click $ fn (e d!)
+                hint-fn $ {} (:return 'Unit)
+                  :args $ [] (:: 'Map 'Tag 'Dynamic)
+                    :: 'Fn $ {} (:return 'Unit) (:rest 'Dynamic)
+                      :args $ [] 'Dynamic
                 on-change (not v?) d!
           :examples $ []
           :schema $ :: 'Fn $ {} (:return 'respo.schema/Component)
             :args $ [] 'Bool $ :: 'Fn
               {} (:return 'Unit)
-                :args $ [] 'Bool 'Dynamic
+                :args $ [] 'Bool $ :: 'Fn
+                  {} (:return 'Unit)
+                    :args $ [] 'Enum
         'comp-quaternary $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defcomp comp-quaternary (states)
             let
-                cursor $ read-field states :cursor
-                state $ either (read-field states :data)
-                  {} (:left? false) (:right? false) (:a false) (:b false)
+                cursor $ decode-map-as (read-field states :cursor) (:: 'List 'Dynamic)
+                state $ decode-map-as
+                  either (read-field states :data)
+                    {} (:left? false) (:right? false) (:a false) (:b false)
+                  :: 'Map 'Tag 'Dynamic
               div
                 {} $ :style $ merge ui/row
                   {} $ :display |inline-flex
                 div
                   {} $ :style $ {} (:padding-top |11px)
-                  comp-leaf (read-field state :left?)
+                  comp-leaf
+                    decode-map-as (read-field state :left?) 'Bool
                     fn (v d!)
-                      d! cursor $ assoc state :left? v
+                      d! $ :: :states cursor $ assoc state :left? v
+                      , &unit
                 =< 2 nil
                 comp-branch (>> states :a) (read-field state :a)
                   fn (v d!)
-                    d! cursor $ assoc state :a v
+                    d! $ :: :states cursor $ assoc state :a v
+                    , &unit
                 =< 2 nil
                 comp-branch (>> states :b) (read-field state :b)
                   fn (v d!)
-                    d! cursor $ assoc state :b v
-                =< 2 nil
+                    d! $ :: :states cursor $ assoc state :b v
+                    , &unit
                 div
                   {} $ :style $ {} (:padding-top |11px)
-                  comp-leaf (read-field state :right?)
+                  comp-leaf
+                    decode-map-as (read-field state :right?) 'Bool
                     fn (v d!)
-                      d! cursor $ assoc state :right? v
+                      d! $ :: :states cursor $ assoc state :right? v
+                      , &unit
           :examples $ []
           :schema $ :: 'Fn $ {} (:return 'respo.schema/Component)
-            :args $ [] 'Dynamic
+            :args $ [] $ :: 'Map 'Dynamic 'Dynamic
         'style-button $ %{} 'CodeEntry (:doc |)
           :code $ quote $ def style-button
             {} (:margin "|0 6px") (:cursor :pointer) (:font-family ui/font-fancy)
           :examples $ []
-          :schema $ :: 'Dynamic
+          :schema $ :: 'Map 'Tag 'String
       :ns $ %{} 'NsEntry (:doc |)
         :code $ quote $ ns app.comp.container
           :require (respo-ui.core :as ui)
             respo.util.format :refer $ hsl
-            respo.core :refer $ defcomp defeffect <> >> div button textarea span input list->
+            respo.core :refer $ defcomp <> >> div span list-> as-states-map
             respo.comp.space :refer $ =<
             respo.comp.inspect :refer $ comp-inspect
-            reel.comp.reel :refer $ comp-reel
-            respo-md.comp.md :refer $ comp-md
+            reel.comp.reel :refer $ comp-typed-reel
             app.config :refer $ dev?
             reel.schema :refer $ read-field
     'app.config $ %{} 'FileEntry
@@ -134,25 +164,32 @@
           :code $ quote $ def dev?
             = |dev $ option:unwrap-or (get-env |mode) |release
           :examples $ []
-          :schema $ :: 'Dynamic
+          :schema $ :: 'Bool
         'site $ %{} 'CodeEntry (:doc |)
           :code $ quote $ def site
             {} $ :storage-key |workflow
           :examples $ []
-          :schema $ :: 'Dynamic
+          :schema $ :: 'Map 'Tag 'String
       :ns $ %{} 'NsEntry (:doc |)
         :code $ quote $ ns app.config
     'app.main $ %{} 'FileEntry
       :defs $ {}
         '*reel $ %{} 'CodeEntry (:doc |)
-          :code $ quote $ defatom *reel
-            -> reel-schema/reel (assoc :base schema/store) (assoc :store schema/store)
+          :code $ quote $ defref *reel (typed/new-reel schema/store)
           :examples $ []
-          :schema $ :: 'Ref 'Dynamic
+          :schema $ :: 'Ref $ :: 'reel.typed/State 'Enum (:: 'Map 'Tag 'Dynamic)
         'dispatch! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn dispatch! (op)
             when config/dev? $ println |Dispatch: op
-            reset! *reel $ reel-updater updater @*reel op
+            let
+                checked $ if (enum? op) op $ raise |Expected-Enum-operation
+              match (typed/decode-control checked)
+                (:some control)
+                  reset! *reel $ typed/apply-control updater @*reel control
+                (:none)
+                  reset! *reel $ typed/record-op updater @*reel checked (generate-id!)
+                    :timestamp $ date-now-snapshot
+            , &unit
           :examples $ []
           :schema $ :: 'Fn $ {} (:return 'Unit)
             :args $ [] 'Dynamic
@@ -161,12 +198,12 @@
             println "|Running mode:" $ if config/dev? |dev |release
             if config/dev? $ load-console-formatter!
             render-app!
-            add-watch *reel :changes $ fn (reel prev) (render-app!)
+            add-watch! *reel :changes $ fn (reel prev) (render-app!)
             listen-devtools! |k dispatch!
             browser/add-event-listener! |beforeunload $ fn (event) (persist-storage!)
             repeat! 60 persist-storage!
             let
-                raw $ browser/storage-get $ option:unwrap (:storage-key config/site)
+                raw $ browser/storage-get $ option:unwrap (get config/site :storage-key)
               when (option:some? raw)
                 dispatch! $ :: :hydrate-storage $ parse-cirru-edn (option:unwrap raw)
             println "|App started."
@@ -176,14 +213,14 @@
             :features $ #{} :js-ffi
         'mount-target $ %{} 'CodeEntry (:doc |)
           :code $ quote $ def mount-target
-            option:unwrap $ browser/query-selector |.app
+            narrow-element $ option:unwrap $ browser/query-selector |.app
           :examples $ []
-          :schema $ :: 'js-ffi.browser/DomElementHost
+          :schema $ :: 'respo.dom/DomElement
         'persist-storage! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn persist-storage! ()
             browser/storage-set!
-              option:unwrap $ :storage-key config/site
-              format-cirru-edn $ reel-schema/read-field @*reel :store
+              option:unwrap $ get config/site :storage-key
+              format-cirru-edn $ :store @*reel
           :examples $ []
           :schema $ :: 'Fn $ {} (:return 'Unit)
             :args $ []
@@ -191,11 +228,12 @@
         'reload! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn reload! ()
             if (nil? build-errors)
-              do (remove-watch *reel :changes) (clear-cache!)
-                add-watch *reel :changes $ fn (reel prev) (render-app!)
-                reset! *reel $ refresh-reel @*reel schema/store updater
+              do (remove-watch! *reel :changes) (clear-cache!)
+                add-watch! *reel :changes $ fn (reel prev) (render-app!)
+                reset! *reel $ typed/refresh updater @*reel schema/store
                 hud! |ok~ |Ok
               hud! |error build-errors
+            , &unit
           :examples $ []
           :schema $ :: 'Fn $ {} (:return 'Unit)
             :args $ []
@@ -226,12 +264,13 @@
             app.updater :refer $ updater
             app.schema :as schema
             reel.util :refer $ listen-devtools!
-            reel.core :refer $ reel-updater refresh-reel
-            reel.schema :as reel-schema
+            reel.typed :as typed
             app.config :as config
             |./calcit.build-errors :default build-errors
             |bottom-tip :default hud!
             js-ffi.browser :as browser
+            js-ffi.shared :refer $ date-now-snapshot
+            respo.ffi.browser :refer $ narrow-element
     'app.schema $ %{} 'FileEntry
       :defs $ {} $ 'store
         %{} 'CodeEntry (:doc |)
@@ -239,27 +278,38 @@
             {} $ :states $ {}
               :cursor $ []
           :examples $ []
-          :schema $ :: 'Dynamic
+          :schema $ :: 'Map 'Tag 'Dynamic
       :ns $ %{} 'NsEntry (:doc |)
         :code $ quote $ ns app.schema
     'app.updater $ %{} 'FileEntry
       :defs $ {}
         'clear-states $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn clear-states (store cursor)
-            dissoc-in store $ prepend cursor :states
+            decode-map-as
+              dissoc-in store $ prepend cursor :states
+              :: 'Map 'Tag 'Dynamic
           :examples $ []
-          :schema $ :: 'Fn $ {} (:return 'Dynamic)
-            :args $ [] 'Dynamic 'Dynamic
+          :schema $ :: 'Fn $ {}
+            :args $ [] (:: 'Map 'Tag 'Dynamic) (:: 'List 'Dynamic)
+            :return $ :: 'Map 'Tag 'Dynamic
         'updater $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn updater (store op op-id op-time)
             match op
-              (:states cursor s) (update-states store cursor s)
-              (:clear-states cursor) (clear-states store cursor)
-              (:hydrate-storage data) data
+              (:states cursor s)
+                decode-map-as
+                  update-states store
+                    decode-map-as cursor $ :: 'List 'Dynamic
+                    , s
+                  :: 'Map 'Tag 'Dynamic
+              (:clear-states cursor)
+                clear-states store $ decode-map-as cursor $ :: 'List 'Dynamic
+              (:hydrate-storage data)
+                decode-map-as data $ :: 'Map 'Tag 'Dynamic
               _ $ do (eprintln "|Unknown op:" op) store
           :examples $ []
-          :schema $ :: 'Fn $ {} (:return 'Dynamic)
-            :args $ [] 'Dynamic 'Dynamic 'String 'Number
+          :schema $ :: 'Fn $ {}
+            :args $ [] (:: 'Map 'Tag 'Dynamic) 'Enum 'String 'Number
+            :return $ :: 'Map 'Tag 'Dynamic
           :tests $ [] $ %{} 'TestEntry (:name |hydrates-stored-state)
             :code $ quote $ is=
               {} $ :counter 2
