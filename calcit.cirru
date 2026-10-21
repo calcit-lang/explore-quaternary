@@ -197,15 +197,15 @@
           :code $ quote $ defn main! ()
             println "|Running mode:" $ if config/dev? |dev |release
             if config/dev? $ load-console-formatter!
+            let
+                raw $ browser/storage-get $ option:unwrap (get config/site :storage-key)
+              when (option:some? raw)
+                dispatch! $ :: :hydrate-storage $ parse-cirru-edn (option:unwrap raw)
             render-app!
             add-watch! *reel :changes $ fn (reel prev) (render-app!)
             listen-devtools! |k dispatch!
             browser/add-event-listener! |beforeunload $ fn (event) (persist-storage!)
             repeat! 60 persist-storage!
-            let
-                raw $ browser/storage-get $ option:unwrap (get config/site :storage-key)
-              when (option:some? raw)
-                dispatch! $ :: :hydrate-storage $ parse-cirru-edn (option:unwrap raw)
             println "|App started."
           :examples $ []
           :schema $ :: 'Fn $ {} (:return 'Unit)

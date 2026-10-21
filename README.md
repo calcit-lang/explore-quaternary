@@ -1,7 +1,16 @@
 
 # Explore Quaternary
 
-> 基于 Calcit 0.30.1-alpha.4 与正式 Respo 模块的四叉树交互示例。编译器与 `@calcit/procs` 使用同一个预发布版本；不是 0.30.1 正式版。
+> 基于正式 Calcit / `@calcit/procs` 0.30.1 的四叉树交互示例。
+
+### 使用者影响
+
+本轮配对正式 0.30.1，并更新 Reel 0.6.41、UI 0.8.0、Respo 0.16.124、js-ffi 0.2.5，
+传递 Router 0.8.37。升级后重启开发服务并完整刷新，不迁移或清空已有存档。
+启动先完成原有存档读取、解析与 Map 解码，再首次渲染和注册保存回调/定时器；
+恢复失败时中断启动，避免后续保存初始值覆盖原数据。保留 `workflow` key、未知字段、
+树展开/收起及缺失字段行为，不添加业务默认值或强转。背景见 [#11](https://github.com/calcit-lang/explore-quaternary/issues/11)。
+本轮不改变部署路径，也不把完整 strict 通过等同于所有异构边界已静态化。
 
 源码使用 `calcit.cirru` / `deps.cirru`，CI 禁止退役的 `compact.cirru` / `package.cirru`。
 PR 前端资源按 `pr/<number>/<run-id>/<attempt>/` 隔离；Vite 与 COS Action v1.2.0
