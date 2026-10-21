@@ -45,7 +45,8 @@ Reel 使用泛型 `reel.typed/State<Enum, Map<Tag, Dynamic>>`，状态更新通�
 不增加项目专用验证 runner、质量预算或 concurrently。
 COS action 内置检查生成 HTML 同域脚本/样式引用和公开字节/SHA-256，无额外项目脚本；生产前缀和服务器路径保持不变。
 
-开发先编译一次再启动 Vite；实时修改 Calcit 时另开终端运行 `calcit calcit.cirru js -w`，不增加 concurrently。
+开发先编译一次再启动 Vite；实时修改 Calcit 时另开终端运行 `calcit -w calcit.cirru`，
+由 JS default entry 决定生成后端，不将一次性的 `js` 子命令与 watch 混用，也不增加 concurrently。
 
 ### CI 工作流
 
