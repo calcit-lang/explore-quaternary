@@ -3,7 +3,7 @@
 
 > 基于正式 Calcit / `@calcit/procs` 0.30.1 的四叉树交互示例。
 
-### 使用者影响
+## 使用者影响
 
 本轮配对正式 0.30.1，并更新 Reel 0.6.41、UI 0.8.0、Respo 0.16.124、js-ffi 0.2.5，
 传递 Router 0.8.37。升级后重启开发服务并完整刷新，不迁移或清空已有存档。
@@ -19,7 +19,7 @@ PR 前端资源按 `pr/<number>/<run-id>/<attempt>/` 隔离；Vite 与 COS Actio
 
 演示：http://repo.calcit-lang.org/explore-quaternary/ 。
 
-### 开发与验证
+## 开发与验证
 
 ```bash
 caps --strict --ci
@@ -48,10 +48,10 @@ COS action 内置检查生成 HTML 同域脚本/样式引用和公开字节/SHA-
 开发先编译一次再启动 Vite；实时修改 Calcit 时另开终端运行 `calcit -w calcit.cirru`，
 由 JS default entry 决定生成后端，不将一次性的 `js` 子命令与 watch 混用，也不增加 concurrently。
 
-### CI 工作流
+## CI 工作流
 
 https://github.com/calcit-lang/respo-calcit-workflow
 
-### 许可证
+## 许可证
 
 MIT
