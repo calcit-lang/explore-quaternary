@@ -1,7 +1,16 @@
 
 # Explore Quaternary
 
-> 基于 Calcit 0.30.1-alpha.4 与正式 Respo 模块的四叉树交互示例。编译器与 `@calcit/procs` 使用同一个预发布版本；不是 0.30.1 正式版。
+> 基于正式 Calcit / `@calcit/procs` 0.30.1 的四叉树交互示例。
+
+## 使用者影响
+
+本轮配对正式 0.30.1，并更新 Reel 0.6.41、UI 0.8.0、Respo 0.16.124、js-ffi 0.2.5，
+传递 Router 0.8.37。升级后重启开发服务并完整刷新，不迁移或清空已有存档。
+启动先完成原有存档读取、解析与 Map 解码，再首次渲染和注册保存回调/定时器；
+恢复失败时中断启动，避免后续保存初始值覆盖原数据。保留 `workflow` key、未知字段、
+树展开/收起及缺失字段行为，不添加业务默认值或强转。背景见 [#11](https://github.com/calcit-lang/explore-quaternary/issues/11)。
+本轮不改变部署路径，也不把完整 strict 通过等同于所有异构边界已静态化。
 
 源码使用 `calcit.cirru` / `deps.cirru`，CI 禁止退役的 `compact.cirru` / `package.cirru`。
 PR 前端资源按 `pr/<number>/<run-id>/<attempt>/` 隔离；Vite 与 COS Action v1.2.0
@@ -10,7 +19,7 @@ PR 前端资源按 `pr/<number>/<run-id>/<attempt>/` 隔离；Vite 与 COS Actio
 
 演示：http://repo.calcit-lang.org/explore-quaternary/ 。
 
-### 开发与验证
+## 开发与验证
 
 ```bash
 caps --strict --ci
@@ -36,12 +45,13 @@ Reel 使用泛型 `reel.typed/State<Enum, Map<Tag, Dynamic>>`，状态更新通�
 不增加项目专用验证 runner、质量预算或 concurrently。
 COS action 内置检查生成 HTML 同域脚本/样式引用和公开字节/SHA-256，无额外项目脚本；生产前缀和服务器路径保持不变。
 
-开发先编译一次再启动 Vite；实时修改 Calcit 时另开终端运行 `calcit calcit.cirru js -w`，不增加 concurrently。
+开发先编译一次再启动 Vite；实时修改 Calcit 时另开终端运行 `calcit -w calcit.cirru`，
+由 JS default entry 决定生成后端，不将一次性的 `js` 子命令与 watch 混用，也不增加 concurrently。
 
-### CI 工作流
+## CI 工作流
 
 https://github.com/calcit-lang/respo-calcit-workflow
 
-### 许可证
+## 许可证
 
 MIT
