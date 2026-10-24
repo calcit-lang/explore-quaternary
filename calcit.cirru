@@ -18,7 +18,7 @@
                 {} $ :style $ {}
                 div
                   {} (:class-name |controller)
-                    :style $ {} (:text-align |center) (:line-height |10px) (:font-size 12) (:cursor |pointer)
+                    :style $ {} (:text-align |center) (:line-height |10px) (:font-size |12px) (:cursor |pointer)
                     :on-click $ fn (e d!)
                       hint-fn $ {} (:return 'Unit)
                         :args $ [] (:: 'Map 'Tag 'Dynamic)
@@ -56,10 +56,14 @@
                   either (read-field state :size) 1
                   , 'Number
               div
-                {} $ :style $ merge ui/global ui/column
+                {} $ :style $ .merge ui/global ui/column
                 div ({})
                   span $ {} (:style style-button) (:inner-text |Less)
                     :on-click $ fn (e d!)
+                      hint-fn $ {} (:return 'Unit)
+                        :args $ [] (:: 'Map 'Tag 'Dynamic)
+                          :: 'Fn $ {} (:return 'Unit) (:rest 'Dynamic)
+                            :args $ [] 'Dynamic
                       when (> size 1)
                         d! $ :: :states cursor $ update state :size
                           fn (value)
@@ -67,30 +71,34 @@
                       , &unit
                   span $ {} (:style style-button) (:inner-text |More)
                     :on-click $ fn (e d!)
+                      hint-fn $ {} (:return 'Unit)
+                        :args $ [] (:: 'Map 'Tag 'Dynamic)
+                          :: 'Fn $ {} (:return 'Unit) (:rest 'Dynamic)
+                            :args $ [] 'Dynamic
                       d! $ :: :states cursor $ update state :size
                         fn (value)
                           inc $ decode-map-as value 'Number
                       , &unit
                 list->
-                  {} $ :style $ merge ui/row
+                  {} $ :style $ .merge ui/row
                     {} $ :flex-wrap |wrap
                   -> size range $ map $ fn (idx)
                     [] idx $ div
-                      {} $ :style $ {} (:margin |8px) (:padding 8)
+                      {} $ :style $ {} (:margin |8px) (:padding |8px)
                         :border $ str "|1px solid " $ hsl 0 0 90
                       div
                         {} $ :style $ {} (:text-align |center) (:line-height |16px)
                         <> $ str idx
                       comp-quaternary $ >> states idx
                 when dev? $ comp-typed-reel (>> states :reel) reel $ {}
-                when dev? $ comp-inspect |reel states $ {} (:bottom 0)
+                when dev? $ comp-inspect |reel states $ {} (:bottom |0px)
           :examples $ []
           :schema $ :: 'Fn $ {} (:return 'respo.schema/Component)
             :args $ [] $ :: 'reel.typed/State 'Enum (:: 'Map 'Tag 'Dynamic)
         'comp-leaf $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defcomp comp-leaf (v? on-change)
             div $ {}
-              :style $ {} (:width 16) (:height 16) (:cursor :pointer)
+              :style $ {} (:width |16px) (:height |16px) (:cursor |pointer)
                 :background-color $ if v? (hsl 200 80 50) (hsl 0 0 80)
               :on-click $ fn (e d!)
                 hint-fn $ {} (:return 'Unit)
@@ -114,7 +122,7 @@
                     {} (:left? false) (:right? false) (:a false) (:b false)
                   :: 'Map 'Tag 'Dynamic
               div
-                {} $ :style $ merge ui/row
+                {} $ :style $ .merge ui/row
                   {} $ :display |inline-flex
                 div
                   {} $ :style $ {} (:padding-top |11px)
@@ -145,7 +153,7 @@
             :args $ [] $ :: 'Map 'Dynamic 'Dynamic
         'style-button $ %{} 'CodeEntry (:doc |)
           :code $ quote $ def style-button
-            {} (:margin "|0 6px") (:cursor :pointer) (:font-family ui/font-fancy)
+            {} (:margin "|0 6px") (:cursor |pointer) (:font-family ui/font-fancy)
           :examples $ []
           :schema $ :: 'Map 'Tag 'String
       :ns $ %{} 'NsEntry (:doc |)
@@ -162,7 +170,7 @@
       :defs $ {}
         'dev? $ %{} 'CodeEntry (:doc |)
           :code $ quote $ def dev?
-            = |dev $ option:unwrap-or (get-env |mode) |release
+            = |dev $ .unwrap-or (get-env |mode) |release
           :examples $ []
           :schema $ :: 'Bool
         'site $ %{} 'CodeEntry (:doc |)
@@ -198,9 +206,9 @@
             println "|Running mode:" $ if config/dev? |dev |release
             if config/dev? $ load-console-formatter!
             let
-                raw $ browser/storage-get $ option:unwrap (get config/site :storage-key)
-              when (option:some? raw)
-                dispatch! $ :: :hydrate-storage $ parse-cirru-edn (option:unwrap raw)
+                raw $ browser/storage-get $ .unwrap (get config/site :storage-key)
+              when (.some? raw)
+                dispatch! $ :: :hydrate-storage $ parse-cirru-edn (.unwrap raw)
             render-app!
             add-watch! *reel :changes $ fn (reel prev) (render-app!)
             listen-devtools! |k dispatch!
@@ -213,13 +221,13 @@
             :features $ #{} :js-ffi
         'mount-target $ %{} 'CodeEntry (:doc |)
           :code $ quote $ def mount-target
-            narrow-element $ option:unwrap $ browser/query-selector |.app
+            narrow-element $ .unwrap $ browser/query-selector |.app
           :examples $ []
           :schema $ :: 'respo.dom/DomElement
         'persist-storage! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn persist-storage! ()
             browser/storage-set!
-              option:unwrap $ get config/site :storage-key
+              .unwrap $ get config/site :storage-key
               format-cirru-edn $ :store @*reel
           :examples $ []
           :schema $ :: 'Fn $ {} (:return 'Unit)

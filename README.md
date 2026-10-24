@@ -52,6 +52,13 @@ Reel 使用泛型 `reel.typed/State<Enum, Map<Tag, Dynamic>>`，状态更新通�
 COS action 内置检查生成 HTML 同域脚本/样式引用和公开字节/SHA-256，无额外项目脚本；生产前缀和服务器路径保持不变。
 本PR不合并、部署或发版；合并仍会触发原Demo前端部署，需要另行确认。
 
+本轮官方Linux 0.30.1事务CI在改写前后均通过all-defs199项和原附着测试1项，
+改写后完整strict、零退役调用/零动态方法门禁及JS/Vite构建通过；没有额外Node测试框架。
+仍有8个定义的15处真实开放类型边界，保持原schema，不用类型计数假装全静态化。
+同一CI静态产物在全新localhost实际验收Less/More、空子状态分支展开/收起、叶节点切换，
+以及两棵树/展开分支/蓝色叶节点的真实刷新恢复，控制台无warning/error。
+未验证坏存档、非空子状态丢弃、HMR、60秒定时器或全部旧存档形状，不能用正常恢复冒充这些证明。
+
 开发先编译一次再启动 Vite；实时修改 Calcit 时另开终端运行 `calcit -w calcit.cirru`，
 由 JS default entry 决定生成后端，不将一次性的 `js` 子命令与 watch 混用，也不增加 concurrently。
 
