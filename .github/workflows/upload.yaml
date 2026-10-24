@@ -17,6 +17,7 @@ concurrency:
 jobs:
   test:
     runs-on: ubuntu-24.04
+    timeout-minutes: 15
     steps:
     - uses: actions/checkout@v7.0.1
       with:
@@ -48,7 +49,10 @@ jobs:
       run: yarn install --immutable
 
     - name: Verify Calcit toolchain
-      run: caps verify --toolchain
+      run: |
+        set -euo pipefail
+        caps verify --toolchain
+        git diff --quiet -- deps.cirru package.json yarn.lock .yarnrc.yml
 
     - name: Validate Snapshot
       run: |
@@ -58,7 +62,7 @@ jobs:
         test ! -e compact.cirru
         test ! -e package.cirru
         calcit calcit.cirru edit format
-        git diff --exit-code -- calcit.cirru
+        git diff --quiet -- calcit.cirru
         calcit calcit.cirru --check-only --all-defs
         calcit calcit.cirru fix --workflow strict --verify
         calcit calcit.cirru analyze weak-types --only dynamic-method --summary-only --format json | jq -e '.data.summary.findings == 0'
@@ -84,6 +88,7 @@ jobs:
         yarn build
 
     - name: Upload and verify static assets on COS
+      timeout-minutes: 10
       if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name == github.repository
       uses: worktools/cos-upload-action@v1.2.0
       with:
