@@ -1,2 +1,2 @@
-calcit.cirru -diff linguist-generated
+calcit.cirru -diff -linguist-generated
 yarn.lock -diff linguist-generated
