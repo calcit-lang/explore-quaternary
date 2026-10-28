@@ -1,18 +1,19 @@
 
 # Explore Quaternary
 
-> 基于正式 Calcit / `@calcit/procs` 0.30.1 的四叉树交互示例。
+> 基于正式 Calcit / `@calcit/procs` 0.31.0 的四叉树交互示例。
 
 ## 使用者影响
 
-本轮继续配对正式 0.30.1，并更新 Reel 0.6.42、UI 0.8.1、Respo 0.16.126、js-ffi 0.2.6，
-传递 Router 0.8.38，Vite 精确固定 8.3.3。升级后重新安装模块、重启开发服务并完整刷新，
+本轮配对正式 CLI/procs 0.31.0；Reel 0.7.0-alpha.4、UI 0.9.0-alpha.4、
+Respo 0.17.0-alpha.4 和传递 Router 0.9.0-alpha.3 仍是已发布的 alpha 模块，
+不能视为稳定模块版本。js-ffi 使用正式 0.2.7，Vite 精确固定 8.3.3。升级后重新安装模块、重启开发服务并完整刷新，
 不迁移或清空已有存档。
 启动先完成原有存档读取、解析与 Map 解码，再首次渲染和注册保存回调/定时器；
 恢复失败时中断启动，避免后续保存初始值覆盖原数据。保留 `workflow` key、未知字段、
 树展开/收起及缺失字段行为，不添加业务默认值或强转。背景见 [#11](https://github.com/calcit-lang/explore-quaternary/issues/11)。
 本轮不改变部署路径，也不把完整 strict 通过等同于所有异构边界已静态化。
-迁移9处旧Option/Map调用；Less/More两个DOM回调按Respo实际EventHandler收紧事件/dispatch合同。
+此前迁移9处旧Option/Map调用；Less/More两个DOM回调按Respo实际EventHandler收紧事件/dispatch合同。
 状态树producer真实支持Tag/数字/字符串混合key，两个组件继续保留开放Map，不能伪造Tag-only合同；
 7处CSS值按原Respo规则改为等价String，真实 `hud!` 成功/错误展示完整保留，不替换成raise。
 原恢复/保存顺序、树算法、缺失字段和原附着测试不变，不增加helper、强转或预算。
@@ -37,7 +38,7 @@ yarn build
 yarn dev
 ```
 
-当前正式模块的依赖请求已对齐，CI 使用 strict Caps 解析，并要求零退役调用和零动态方法派发。
+当前模块的依赖请求已对齐，CI 使用 strict Caps 解析，并要求零退役调用和零动态方法派发。
 通过严格检查不代表全部类型债务已经完成。
 
 Reel 使用泛型 `reel.typed/State<Enum, Map<Tag, Dynamic>>`，状态更新通过单个 Enum 操作派发。
@@ -52,7 +53,7 @@ Reel 使用泛型 `reel.typed/State<Enum, Map<Tag, Dynamic>>`，状态更新通�
 COS action 内置检查生成 HTML 同域脚本/样式引用和公开字节/SHA-256，无额外项目脚本；生产前缀和服务器路径保持不变。
 本PR不合并、部署或发版；合并仍会触发原Demo前端部署，需要另行确认。
 
-本轮官方Linux 0.30.1事务CI在改写前后均通过all-defs199项和原附着测试1项，
+此前官方Linux 0.30.1事务CI在改写前后均通过all-defs199项和原附着测试1项，
 改写后完整strict、零退役调用/零动态方法门禁及JS/Vite构建通过；没有额外Node测试框架。
 仍有8个定义的15处真实开放类型边界，保持原schema，不用类型计数假装全静态化。
 同一CI静态产物在全新localhost实际验收Less/More、空子状态分支展开/收起、叶节点切换，
@@ -61,6 +62,13 @@ COS action 内置检查生成 HTML 同域脚本/样式引用和公开字节/SHA-
 
 开发先编译一次再启动 Vite；实时修改 Calcit 时另开终端运行 `calcit -w calcit.cirru`，
 由 JS default entry 决定生成后端，不将一次性的 `js` 子命令与 watch 混用，也不增加 concurrently。
+
+本轮仅补充 Respo 的 `dispatch-op` 入口绑定为 Enum，与原有 Enum 运行检查一致，
+没有改动 dispatch/updater 或存档逻辑。新增的 DispatchOp 代表值不会派发。
+0.31.0 本地全部定义200项、完整strict、原附着测试1项、零动态方法/弃用门禁、
+immutable安装和JS/Vite构建通过。实际Less/More、空分支展开/收起、叶节点切换及
+两棵树/蓝色叶节点刷新恢复通过，控制台无warning/error。
+未重新验收坏存档、非空子状态丢弃、HMR或60秒定时器；这些限制仍保留。
 
 ## CI 工作流
 
