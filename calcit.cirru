@@ -20,10 +20,9 @@
                   {} (:class-name |controller)
                     :style $ {} (:text-align |center) (:line-height |10px) (:font-size |12px) (:cursor |pointer)
                     :on-click $ fn (e d!)
-                      hint-fn $ {} (:return 'Unit)
-                        :args $ [] (:: 'Map 'Tag 'Dynamic)
-                          :: 'Fn $ {} (:return 'Unit) (:rest 'Dynamic)
-                            :args $ [] 'Dynamic
+                      hint-fn $ Fn (Map Tag Dynamic)
+                        Fn Dynamic & Dynamic $ -> Unit
+                        -> Unit
                       if (tag? v)
                         do (on-change false d!)
                           d! $ :: :clear-states cursor
@@ -34,12 +33,11 @@
                   comp-leaf v $ fn (next d!) (on-change next d!)
                   comp-quaternary states
           :examples $ []
-          :schema $ :: 'Fn $ {} (:return 'respo.schema/Component)
-            :args $ [] (:: 'Map 'Dynamic 'Dynamic) 'Dynamic $ :: 'Fn
-              {} (:return 'Unit)
-                :args $ [] 'Dynamic $ :: 'Fn
-                  {} (:return 'Unit)
-                    :args $ [] 'Enum
+          :schema $ quote $ Fn (Map Dynamic Dynamic) Dynamic
+            Fn Dynamic
+              Fn Enum $ -> Unit
+              -> Unit
+            -> respo.schema/Component
         'comp-container $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defcomp comp-container (reel)
             let
@@ -60,10 +58,9 @@
                 div ({})
                   span $ {} (:style style-button) (:inner-text |Less)
                     :on-click $ fn (e d!)
-                      hint-fn $ {} (:return 'Unit)
-                        :args $ [] (:: 'Map 'Tag 'Dynamic)
-                          :: 'Fn $ {} (:return 'Unit) (:rest 'Dynamic)
-                            :args $ [] 'Dynamic
+                      hint-fn $ Fn (Map Tag Dynamic)
+                        Fn Dynamic & Dynamic $ -> Unit
+                        -> Unit
                       when (> size 1)
                         d! $ :: :states cursor $ update state :size
                           fn (value)
@@ -71,10 +68,9 @@
                       , &unit
                   span $ {} (:style style-button) (:inner-text |More)
                     :on-click $ fn (e d!)
-                      hint-fn $ {} (:return 'Unit)
-                        :args $ [] (:: 'Map 'Tag 'Dynamic)
-                          :: 'Fn $ {} (:return 'Unit) (:rest 'Dynamic)
-                            :args $ [] 'Dynamic
+                      hint-fn $ Fn (Map Tag Dynamic)
+                        Fn Dynamic & Dynamic $ -> Unit
+                        -> Unit
                       d! $ :: :states cursor $ update state :size
                         fn (value)
                           inc $ decode-map-as value 'Number
@@ -93,26 +89,25 @@
                 when dev? $ comp-typed-reel (>> states :reel) reel $ {}
                 when dev? $ comp-inspect |reel states $ {} (:bottom |0px)
           :examples $ []
-          :schema $ :: 'Fn $ {} (:return 'respo.schema/Component)
-            :args $ [] $ :: 'reel.typed/State 'Enum (:: 'Map 'Tag 'Dynamic)
+          :schema $ quote $ Fn
+            reel.typed/State Enum $ Map Tag Dynamic
+            -> respo.schema/Component
         'comp-leaf $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defcomp comp-leaf (v? on-change)
             div $ {}
               :style $ {} (:width |16px) (:height |16px) (:cursor |pointer)
                 :background-color $ if v? (hsl 200 80 50) (hsl 0 0 80)
               :on-click $ fn (e d!)
-                hint-fn $ {} (:return 'Unit)
-                  :args $ [] (:: 'Map 'Tag 'Dynamic)
-                    :: 'Fn $ {} (:return 'Unit) (:rest 'Dynamic)
-                      :args $ [] 'Dynamic
+                hint-fn $ Fn (Map Tag Dynamic)
+                  Fn Dynamic & Dynamic $ -> Unit
+                  -> Unit
                 on-change (not v?) d!
           :examples $ []
-          :schema $ :: 'Fn $ {} (:return 'respo.schema/Component)
-            :args $ [] 'Bool $ :: 'Fn
-              {} (:return 'Unit)
-                :args $ [] 'Bool $ :: 'Fn
-                  {} (:return 'Unit)
-                    :args $ [] 'Enum
+          :schema $ quote $ Fn Bool
+            Fn Bool
+              Fn Enum $ -> Unit
+              -> Unit
+            -> respo.schema/Component
         'comp-quaternary $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defcomp comp-quaternary (states)
             let
@@ -149,13 +144,12 @@
                       d! $ :: :states cursor $ assoc state :right? v
                       , &unit
           :examples $ []
-          :schema $ :: 'Fn $ {} (:return 'respo.schema/Component)
-            :args $ [] $ :: 'Map 'Dynamic 'Dynamic
+          :schema $ quote $ Fn (Map Dynamic Dynamic) (-> respo.schema/Component)
         'style-button $ %{} 'CodeEntry (:doc |)
           :code $ quote $ def style-button
             {} (:margin "|0 6px") (:cursor |pointer) (:font-family ui/font-fancy)
           :examples $ []
-          :schema $ :: 'Map 'Tag 'String
+          :schema $ quote $ Map Tag String
       :ns $ %{} 'NsEntry (:doc |)
         :code $ quote $ ns app.comp.container
           :require (respo-ui.core :as ui)
@@ -172,12 +166,12 @@
           :code $ quote $ def dev?
             = |dev $ .unwrap-or (get-env |mode) |release
           :examples $ []
-          :schema $ :: 'Bool
+          :schema $ quote Bool
         'site $ %{} 'CodeEntry (:doc |)
           :code $ quote $ def site
             {} $ :storage-key |workflow
           :examples $ []
-          :schema $ :: 'Map 'Tag 'String
+          :schema $ quote $ Map Tag String
       :ns $ %{} 'NsEntry (:doc |)
         :code $ quote $ ns app.config
     'app.main $ %{} 'FileEntry
@@ -185,7 +179,8 @@
         '*reel $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defref *reel (typed/new-reel schema/store)
           :examples $ []
-          :schema $ :: 'Ref $ :: 'reel.typed/State 'Enum (:: 'Map 'Tag 'Dynamic)
+          :schema $ quote $ Ref
+            reel.typed/State Enum $ Map Tag Dynamic
         'dispatch! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn dispatch! (op)
             when config/dev? $ println |Dispatch: op
@@ -199,8 +194,7 @@
                     :timestamp $ date-now-snapshot
             , &unit
           :examples $ []
-          :schema $ :: 'Fn $ {} (:return 'Unit)
-            :args $ [] 'Dynamic
+          :schema $ quote $ Fn Dynamic (-> Unit)
         'main! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn main! ()
             println "|Running mode:" $ if config/dev? |dev |release
@@ -216,23 +210,19 @@
             repeat! 60 persist-storage!
             println "|App started."
           :examples $ []
-          :schema $ :: 'Fn $ {} (:return 'Unit)
-            :args $ []
-            :features $ #{} :js-ffi
+          :schema $ quote $ Fn (-> Unit) (:features :js-ffi)
         'mount-target $ %{} 'CodeEntry (:doc |)
           :code $ quote $ def mount-target
             narrow-element $ .unwrap $ browser/query-selector |.app
           :examples $ []
-          :schema $ :: 'respo.dom/DomElement
+          :schema $ quote respo.dom/DomElement
         'persist-storage! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn persist-storage! ()
             browser/storage-set!
               .unwrap $ get config/site :storage-key
               format-cirru-edn $ :store @*reel
           :examples $ []
-          :schema $ :: 'Fn $ {} (:return 'Unit)
-            :args $ []
-            :features $ #{} :js-ffi
+          :schema $ quote $ Fn (-> Unit) (:features :js-ffi)
         'reload! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn reload! ()
             if (nil? build-errors)
@@ -243,15 +233,12 @@
               hud! |error build-errors
             , &unit
           :examples $ []
-          :schema $ :: 'Fn $ {} (:return 'Unit)
-            :args $ []
+          :schema $ quote $ Fn (-> Unit)
         'render-app! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn render-app! ()
             render! mount-target (comp-container @*reel) dispatch!
           :examples $ []
-          :schema $ :: 'Fn $ {} (:return 'Unit)
-            :args $ []
-            :features $ #{} :js-ffi
+          :schema $ quote $ Fn (-> Unit) (:features :js-ffi)
         'repeat! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn repeat! (duration cb)
             browser/set-timeout!
@@ -259,11 +246,10 @@
               * 1000 duration
             , &unit
           :examples $ []
-          :schema $ :: 'Fn $ {} (:return 'Unit)
-            :args $ [] 'Number $ :: 'Fn
-              {} (:return 'Unit)
-                :args $ []
-            :features $ #{} :js-ffi
+          :schema $ quote $ Fn Number
+            Fn $ -> Unit
+            -> Unit
+            :features :js-ffi
       :ns $ %{} 'NsEntry (:doc |)
         :code $ quote $ ns app.main
           :require
@@ -284,13 +270,13 @@
         'DispatchOp $ %{} 'CodeEntry (:doc "|Respo 入口事件合同，容纳应用和 Reel 控制事件；代表值不发送。")
           :code $ quote $ def DispatchOp (:: :unhandled)
           :examples $ []
-          :schema $ :: 'Enum
+          :schema $ quote Enum
         'store $ %{} 'CodeEntry (:doc |)
           :code $ quote $ def store
             {} $ :states $ {}
               :cursor $ []
           :examples $ []
-          :schema $ :: 'Map 'Tag 'Dynamic
+          :schema $ quote $ Map Tag Dynamic
       :ns $ %{} 'NsEntry (:doc |)
         :code $ quote $ ns app.schema
     'app.updater $ %{} 'FileEntry
@@ -301,9 +287,8 @@
               dissoc-in store $ prepend cursor :states
               :: 'Map 'Tag 'Dynamic
           :examples $ []
-          :schema $ :: 'Fn $ {}
-            :args $ [] (:: 'Map 'Tag 'Dynamic) (:: 'List 'Dynamic)
-            :return $ :: 'Map 'Tag 'Dynamic
+          :schema $ quote $ Fn (Map Tag Dynamic) (List Dynamic)
+            -> $ Map Tag Dynamic
         'updater $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn updater (store op op-id op-time)
             match op
@@ -319,9 +304,8 @@
                 decode-map-as data $ :: 'Map 'Tag 'Dynamic
               _ $ do (eprintln "|Unknown op:" op) store
           :examples $ []
-          :schema $ :: 'Fn $ {}
-            :args $ [] (:: 'Map 'Tag 'Dynamic) 'Enum 'String 'Number
-            :return $ :: 'Map 'Tag 'Dynamic
+          :schema $ quote $ Fn (Map Tag Dynamic) Enum String Number
+            -> $ Map Tag Dynamic
           :tests $ [] $ %{} 'TestEntry (:name |hydrates-stored-state)
             :code $ quote $ is=
               {} $ :counter 2
