@@ -21,7 +21,7 @@
                     :style $ {} (:text-align |center) (:line-height |10px) (:font-size |12px) (:cursor |pointer)
                     :on-click $ fn (e d!)
                       hint-fn $ Fn (Map Tag Dynamic)
-                        Fn Dynamic & Dynamic $ -> Unit
+                        Fn Enum $ -> Unit
                         -> Unit
                       if (tag? v)
                         do (on-change false d!)
@@ -59,7 +59,7 @@
                   span $ {} (:style style-button) (:inner-text |Less)
                     :on-click $ fn (e d!)
                       hint-fn $ Fn (Map Tag Dynamic)
-                        Fn Dynamic & Dynamic $ -> Unit
+                        Fn Enum $ -> Unit
                         -> Unit
                       when (> size 1)
                         d! $ :: :states cursor $ update state :size
@@ -69,7 +69,7 @@
                   span $ {} (:style style-button) (:inner-text |More)
                     :on-click $ fn (e d!)
                       hint-fn $ Fn (Map Tag Dynamic)
-                        Fn Dynamic & Dynamic $ -> Unit
+                        Fn Enum $ -> Unit
                         -> Unit
                       d! $ :: :states cursor $ update state :size
                         fn (value)
@@ -99,7 +99,7 @@
                 :background-color $ if v? (hsl 200 80 50) (hsl 0 0 80)
               :on-click $ fn (e d!)
                 hint-fn $ Fn (Map Tag Dynamic)
-                  Fn Dynamic & Dynamic $ -> Unit
+                  Fn Enum $ -> Unit
                   -> Unit
                 on-change (not v?) d!
           :examples $ []
