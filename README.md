@@ -36,7 +36,7 @@ CI 保留 all-defs、完整 strict（必须 passed 且 diagnostics 为空）、�
 
 主站资源前缀为 `https://cos-sh.tiye.me/calcit-lang/explore-quaternary/`；PR 使用 `pr/<number>/<run-id>/<attempt>/` 隔离路径。Vite 与 COS action v1.2.0 使用相同 base URL，仅上传 dist，通过 action 内置 verify 校验，不增加额外脚本。
 
-生产 rsync 仅在 main 执行，原 `/web-assets/repo/calcit-lang/explore-quaternary` 路径保持。创建 PR 可上传隔离前端预览；本轮不合并、不部署生产、不发布 tag/npm。
+生产 rsync 仅在 main 执行，原 `/web-assets/repo/calcit-lang/explore-quaternary` 路径保持。同仓库 PR 可上传隔离前端预览；fork PR 只执行检查和构建，不上传 COS 预览。本轮不合并、不部署生产、不发布 tag/npm。
 
 ## 许可证
 
