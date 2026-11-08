@@ -6,72 +6,90 @@
     {} (:description |) (:init-fn 'app.main/main!) (:mode :js) (:reload-fn 'app.main/reload!) (:target :browser)
       :feature-policy $ {}
       :modules $ [] |respo.calcit/ |respo-ui.calcit/ |reel.calcit/
-      :type-slots $ {} $ :dispatch-op |app.schema/DispatchOp
+      :type-slots $ {} $ :dispatch-op 'app.schema/Op
   :files $ {}
     'app.comp.container $ %{} 'FileEntry
       :defs $ {}
         'comp-branch $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defcomp comp-branch (states v on-change)
             let
-                cursor $ decode-map-as (read-field states :cursor) (:: 'List 'Dynamic)
+                cursor $ decode-map-as
+                  .unwrap $ get states :cursor
+                  List respo.schema/CoordKey
+                leaf $ match v
+                  (:some value)
+                    match value
+                      (Bool flag) (Option :some flag)
+                      (Tag _) (Option :none)
+                  (:none) (Option :none)
+                expanded? $ and (.some? v) (.none? leaf)
               div
                 {} $ :style $ {}
                 div
                   {} (:class-name |controller)
                     :style $ {} (:text-align |center) (:line-height |10px) (:font-size |12px) (:cursor |pointer)
                     :on-click $ fn (e d!)
-                      hint-fn $ Fn (Map Tag Dynamic)
-                        Fn Enum $ -> Unit
+                      hint-fn $ Fn respo.schema/RespoEvent
+                        Fn app.schema/Op $ -> Unit
                         -> Unit
-                      if (tag? v)
+                      if expanded?
                         do (on-change false d!)
-                          d! $ :: :clear-states cursor
+                          d! $ Op :clear-states cursor
                         on-change :branch d!
                       , &unit
-                  <> $ if (tag? v) |x |Br
-                if (bool? v)
-                  comp-leaf v $ fn (next d!) (on-change next d!)
-                  comp-quaternary states
+                  <> $ if expanded? |x |Br
+                match leaf
+                  (:some flag)
+                    comp-leaf flag $ fn (next d!) (on-change next d!)
+                  (:none) (comp-quaternary states)
           :examples $ []
-          :schema $ quote $ Fn (Map Dynamic Dynamic) Dynamic
-            Fn Dynamic
-              Fn Enum $ -> Unit
+          :schema $ quote $ Fn (Map Dynamic Dynamic) (Option app.schema/BranchValue)
+            Fn app.schema/BranchValue
+              Fn app.schema/Op $ -> Unit
               -> Unit
             -> respo.schema/Component
         'comp-container $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defcomp comp-container (reel)
             let
                 store $ :store reel
-                states $ as-states-map $ read-field store :states
+                states $ as-states-map $ .unwrap-or (get store :states) ({})
                 cursor $ decode-map-as
-                  either (read-field states :cursor) ([])
-                  :: 'List 'Dynamic
+                  match (get states :cursor)
+                    (:some value)
+                      either value $ []
+                    (:none) ([])
+                  List respo.schema/CoordKey
                 state $ decode-map-as
-                  either (read-field states :data)
-                    {} (:content |) (:size 1)
-                  :: 'Map 'Tag 'Dynamic
+                  match (get states :data)
+                    (:some value)
+                      either value $ {} (:content |) (:size 1)
+                    (:none)
+                      {} (:content |) (:size 1)
+                  Map Tag Dynamic
                 size $ decode-map-as
-                  either (read-field state :size) 1
+                  match (get state :size)
+                    (:some value) (either value 1)
+                    (:none) 1
                   , 'Number
               div
                 {} $ :style $ .merge ui/global ui/column
                 div ({})
                   span $ {} (:style style-button) (:inner-text |Less)
                     :on-click $ fn (e d!)
-                      hint-fn $ Fn (Map Tag Dynamic)
-                        Fn Enum $ -> Unit
+                      hint-fn $ Fn respo.schema/RespoEvent
+                        Fn app.schema/Op $ -> Unit
                         -> Unit
                       when (> size 1)
-                        d! $ :: :states cursor $ update state :size
+                        d! $ Op :states cursor $ update state :size
                           fn (value)
                             dec $ decode-map-as value 'Number
                       , &unit
                   span $ {} (:style style-button) (:inner-text |More)
                     :on-click $ fn (e d!)
-                      hint-fn $ Fn (Map Tag Dynamic)
-                        Fn Enum $ -> Unit
+                      hint-fn $ Fn respo.schema/RespoEvent
+                        Fn app.schema/Op $ -> Unit
                         -> Unit
-                      d! $ :: :states cursor $ update state :size
+                      d! $ Op :states cursor $ update state :size
                         fn (value)
                           inc $ decode-map-as value 'Number
                       , &unit
@@ -86,11 +104,15 @@
                         {} $ :style $ {} (:text-align |center) (:line-height |16px)
                         <> $ str idx
                       comp-quaternary $ >> states idx
-                when dev? $ comp-typed-reel (>> states :reel) reel $ {}
-                when dev? $ comp-inspect |reel states $ {} (:bottom |0px)
+                if dev?
+                  Option :some $ comp-typed-reel (>> states :reel) reel $ {}
+                  Option :none
+                if dev?
+                  Option :some $ comp-inspect |reel states $ {} (:bottom |0px)
+                  Option :none
           :examples $ []
           :schema $ quote $ Fn
-            reel.typed/State Enum $ Map Tag Dynamic
+            reel.typed/State app.schema/Op $ Map Tag Dynamic
             -> respo.schema/Component
         'comp-leaf $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defcomp comp-leaf (v? on-change)
@@ -98,53 +120,72 @@
               :style $ {} (:width |16px) (:height |16px) (:cursor |pointer)
                 :background-color $ if v? (hsl 200 80 50) (hsl 0 0 80)
               :on-click $ fn (e d!)
-                hint-fn $ Fn (Map Tag Dynamic)
-                  Fn Enum $ -> Unit
+                hint-fn $ Fn respo.schema/RespoEvent
+                  Fn app.schema/Op $ -> Unit
                   -> Unit
                 on-change (not v?) d!
           :examples $ []
           :schema $ quote $ Fn Bool
             Fn Bool
-              Fn Enum $ -> Unit
+              Fn app.schema/Op $ -> Unit
               -> Unit
             -> respo.schema/Component
         'comp-quaternary $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defcomp comp-quaternary (states)
             let
-                cursor $ decode-map-as (read-field states :cursor) (:: 'List 'Dynamic)
+                cursor $ decode-map-as
+                  .unwrap $ get states :cursor
+                  List respo.schema/CoordKey
                 state $ decode-map-as
-                  either (read-field states :data)
-                    {} (:left? false) (:right? false) (:a false) (:b false)
-                  :: 'Map 'Tag 'Dynamic
+                  match (get states :data)
+                    (:some value)
+                      either value $ {} (:left? false) (:right? false) (:a false) (:b false)
+                    (:none)
+                      {} (:left? false) (:right? false) (:a false) (:b false)
+                  Map Tag Dynamic
               div
                 {} $ :style $ .merge ui/row
                   {} $ :display |inline-flex
                 div
                   {} $ :style $ {} (:padding-top |11px)
                   comp-leaf
-                    decode-map-as (read-field state :left?) 'Bool
+                    decode-map-as
+                      .unwrap $ get state :left?
+                      , 'Bool
                     fn (v d!)
-                      d! $ :: :states cursor $ assoc state :left? v
+                      d! $ Op :states cursor $ assoc state :left? v
                       , &unit
-                =< 2 nil
-                comp-branch (>> states :a) (read-field state :a)
+                space-x 2
+                comp-branch (>> states :a) (read-branch state :a)
                   fn (v d!)
-                    d! $ :: :states cursor $ assoc state :a v
+                    d! $ Op :states cursor $ assoc state :a v
                     , &unit
-                =< 2 nil
-                comp-branch (>> states :b) (read-field state :b)
+                space-x 2
+                comp-branch (>> states :b) (read-branch state :b)
                   fn (v d!)
-                    d! $ :: :states cursor $ assoc state :b v
+                    d! $ Op :states cursor $ assoc state :b v
                     , &unit
                 div
                   {} $ :style $ {} (:padding-top |11px)
                   comp-leaf
-                    decode-map-as (read-field state :right?) 'Bool
+                    decode-map-as
+                      .unwrap $ get state :right?
+                      , 'Bool
                     fn (v d!)
-                      d! $ :: :states cursor $ assoc state :right? v
+                      d! $ Op :states cursor $ assoc state :right? v
                       , &unit
           :examples $ []
           :schema $ quote $ Fn (Map Dynamic Dynamic) (-> respo.schema/Component)
+        'read-branch $ %{} 'CodeEntry (:doc |)
+          :code $ quote $ defn read-branch (state field)
+            match (get state field)
+              (:some raw)
+                if (nil? raw) (Option :none)
+                  Option :some $ decode-map-as raw 'app.schema/BranchValue
+              (:none) (Option :none)
+          :examples $ []
+          :schema $ quote $ Fn (Map Tag Dynamic) Tag
+            -> $ Option app.schema/BranchValue
         'style-button $ %{} 'CodeEntry (:doc |)
           :code $ quote $ def style-button
             {} (:margin "|0 6px") (:cursor |pointer) (:font-family ui/font-fancy)
@@ -155,11 +196,11 @@
           :require (respo-ui.core :as ui)
             respo.util.format :refer $ hsl
             respo.core :refer $ defcomp <> >> div span list-> as-states-map
-            respo.comp.space :refer $ =<
+            respo.comp.space :refer $ space-x
             respo.comp.inspect :refer $ comp-inspect
             reel.comp.reel :refer $ comp-typed-reel
             app.config :refer $ dev?
-            reel.schema :refer $ read-field
+            app.schema :refer $ Op
     'app.config $ %{} 'FileEntry
       :defs $ {}
         'dev? $ %{} 'CodeEntry (:doc |)
@@ -180,21 +221,39 @@
           :code $ quote $ defref *reel (typed/new-reel schema/store)
           :examples $ []
           :schema $ quote $ Ref
-            reel.typed/State Enum $ Map Tag Dynamic
+            reel.typed/State app.schema/Op $ Map Tag Dynamic
         'dispatch! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn dispatch! (op)
             when config/dev? $ println |Dispatch: op
-            let
-                checked $ if (enum? op) op $ raise |Expected-Enum-operation
-              match (typed/decode-control checked)
-                (:some control)
-                  reset! *reel $ typed/apply-control updater @*reel control
+            if
+              = (enum-definition op) (Option :some typed/Control)
+              dispatch-resolved! $ decode-map-as op 'reel.typed/Control
+              match (typed/decode-control op)
+                (:some control) (dispatch-resolved! control)
                 (:none)
-                  reset! *reel $ typed/record-op updater @*reel checked (generate-id!)
-                    :timestamp $ date-now-snapshot
+                  match op
+                    (:states path value)
+                      dispatch-resolved! $ schema/Op :states
+                        decode-map-as path $ List respo.schema/CoordKey
+                        , value
+                    (:clear-states path)
+                      dispatch-resolved! $ schema/Op :clear-states $ decode-map-as path (List respo.schema/CoordKey)
+                    (:hydrate-storage raw)
+                      dispatch-resolved! $ schema/Op :hydrate-storage $ decode-map-as raw (Map Tag Dynamic)
+                    _ $ eprintln "|Unknown op:" op
             , &unit
           :examples $ []
-          :schema $ quote $ Fn Dynamic (-> Unit)
+          :schema $ quote $ Fn AnyEnum (-> Unit)
+        'dispatch-resolved! $ %{} 'CodeEntry (:doc |)
+          :code $ quote $ defn dispatch-resolved! (op)
+            reset! *reel $ match op
+              (reel.typed/Control control) (typed/apply-control updater @*reel control)
+              (app.schema/Op action)
+                typed/record-op updater @*reel action (generate-id!)
+                  :timestamp $ date-now-snapshot
+            , &unit
+          :examples $ []
+          :schema $ quote $ Fn app.schema/ResolvedOp (-> Unit) (:features :js-ffi)
         'main! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn main! ()
             println "|Running mode:" $ if config/dev? |dev |release
@@ -236,7 +295,10 @@
           :schema $ quote $ Fn (-> Unit)
         'render-app! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn render-app! ()
-            render! mount-target (comp-container @*reel) dispatch!
+            render! mount-target (comp-container @*reel)
+              fn (op)
+                hint-fn $ Fn app.schema/Op $ -> Unit
+                dispatch! op
           :examples $ []
           :schema $ quote $ Fn (-> Unit) (:features :js-ffi)
         'repeat! $ %{} 'CodeEntry (:doc |)
@@ -267,10 +329,21 @@
             respo.ffi.browser :refer $ narrow-element
     'app.schema $ %{} 'FileEntry
       :defs $ {}
-        'DispatchOp $ %{} 'CodeEntry (:doc "|Respo 入口事件合同，容纳应用和 Reel 控制事件；代表值不发送。")
-          :code $ quote $ def DispatchOp (:: :unhandled)
+        'BranchValue $ %{} 'CodeEntry (:doc |)
+          :code $ quote $ defunion BranchValue Bool Tag
           :examples $ []
-          :schema $ quote Enum
+          :schema $ quote UnionDef
+        'Op $ %{} 'CodeEntry (:doc |)
+          :code $ quote $ defenum Op
+            :states (List respo.schema/CoordKey) Dynamic
+            :clear-states $ List respo.schema/CoordKey
+            :hydrate-storage $ Map Tag Dynamic
+          :examples $ []
+          :schema $ quote EnumDef
+        'ResolvedOp $ %{} 'CodeEntry (:doc |)
+          :code $ quote $ defunion ResolvedOp Op reel.typed/Control
+          :examples $ []
+          :schema $ quote UnionDef
         'store $ %{} 'CodeEntry (:doc |)
           :code $ quote $ def store
             {} $ :states $ {}
@@ -285,33 +358,26 @@
           :code $ quote $ defn clear-states (store cursor)
             decode-map-as
               dissoc-in store $ prepend cursor :states
-              :: 'Map 'Tag 'Dynamic
+              Map Tag Dynamic
           :examples $ []
-          :schema $ quote $ Fn (Map Tag Dynamic) (List Dynamic)
+          :schema $ quote $ Fn (Map Tag Dynamic) (List respo.schema/CoordKey)
             -> $ Map Tag Dynamic
         'updater $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn updater (store op op-id op-time)
             match op
               (:states cursor s)
-                decode-map-as
-                  update-states store
-                    decode-map-as cursor $ :: 'List 'Dynamic
-                    , s
-                  :: 'Map 'Tag 'Dynamic
-              (:clear-states cursor)
-                clear-states store $ decode-map-as cursor $ :: 'List 'Dynamic
-              (:hydrate-storage data)
-                decode-map-as data $ :: 'Map 'Tag 'Dynamic
-              _ $ do (eprintln "|Unknown op:" op) store
+                decode-map-as (update-states store cursor s) (Map Tag Dynamic)
+              (:clear-states cursor) (clear-states store cursor)
+              (:hydrate-storage data) data
           :examples $ []
-          :schema $ quote $ Fn (Map Tag Dynamic) Enum String Number
+          :schema $ quote $ Fn (Map Tag Dynamic) app.schema/Op String Number
             -> $ Map Tag Dynamic
           :tests $ [] $ %{} 'TestEntry (:name |hydrates-stored-state)
             :code $ quote $ is=
               {} $ :counter 2
               updater
                 {} $ :counter 1
-                :: :hydrate-storage $ {} $ :counter 2
+                Op :hydrate-storage $ {} $ :counter 2
                 , |test 0
             :tags $ #{} :storage :unit
       :ns $ %{} 'NsEntry (:doc |)
@@ -319,3 +385,4 @@
           :require
             respo.cursor :refer $ update-states
             calcit.test :refer $ is=
+            app.schema :refer $ Op
