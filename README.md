@@ -2,13 +2,11 @@
 
 四叉树交互示例：[Demo](http://repo.calcit-lang.org/explore-quaternary/)。
 
-## 0.32.1 迁移候选：使用者影响
+## 使用者影响
 
-CLI 与 `@calcit/procs` 配对正式 **0.32.1**。升级后重新安装完整模块图、生成 JS 并完整刷新，避免混用旧缓存；不迁移或清空已有存档。应用版本仍为 0.0.2，本 PR 不发布模块。
+请配对使用 Calcit 与 `@calcit/procs` **0.37.0**，重新安装依赖并构建。Less/More、展开与收起、原存档格式和页面错误提示沿用原行为。
 
-模块使用已发布的 Respo 0.17.1、UI 0.9.0、JS FFI 0.2.9、Reel 0.7.0-alpha.5，传递 Router 0.9.0-alpha.4；Reel/Router 仍含 alpha，不宣称整图均已正式版。已通过真实 Caps strict 发布依赖解析与 toolchain 校验，模块不可变源码与此前测试一致；最新 main 未变化且无重复迁移 PR，远端 CI 仍待执行。
-
-官方 formatter 迁移四处类型存储写法；四个 DOM 回调的派发提示收紧为真实单 Enum/Unit，不再声明 Dynamic/rest 调用。19 个原定义的 schema、原附带测试和运行逻辑保持；收紧提示前后的全部浏览器构建产物逐字节相同。Less/More、树展开/收起、叶节点 Bool/Tag、缺失 `:size` 时不补值及真实 `hud!` 保留。根状态和嵌套 UI 状态确为异构 Map，保留未知字段，不用强转或同质 Map 声明掩盖边界。`DispatchOp` 仅为入口绑定真实 Enum 类型，代表值不派发。
+正式模块为 Respo 0.19.5、UI 0.15.2、JS FFI 0.2.13、Reel 0.10.0，传递 Router 0.12.2。界面使用明确的应用操作，内部用 `Op | Reel.Control` 分发，继续接收旧调试事件。树分支使用 `Bool | Tag`，缺失字段通过 `Option` 表达。原状态 Map 中的额外字段继续保留。
 
 保留 `workflow` 存档键；启动先读取、解析和检查存档，再渲染、注册 watch/保存。恢复失败时中断启动，避免初始状态覆盖原文；背景见 [#11](https://github.com/calcit-lang/explore-quaternary/issues/11)。本轮不修改恢复/保存顺序。
 
