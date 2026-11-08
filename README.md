@@ -28,7 +28,7 @@ corepack yarn dev
 
 CI 保留 all-defs、完整 strict（必须 passed 且 diagnostics 为空）、原测试、零动态方法和零弃用调用门禁，不新增项目验证脚本、强转、预算豁免或 concurrently。实时 Calcit 开发另开终端运行 `calcit -w calcit.cirru`。
 
-本轮本地 200 个定义、完整 strict、原一项附带测试、dynamic-method=0、deprecated-call=0、immutable 安装和 JS/Vite 构建通过。本轮 0.32.1 实际页面已验证 More 创建第二棵测试树、分支展开、叶节点变蓝以及刷新恢复，控制台无 warn/error。没有执行 Less 或 x 清理操作；坏存档、非空子状态清理、HMR 和 60 秒定时保存未复验。
+0.37.0 本地通过 210 个定义、完整 strict、原附带测试和 Vite 构建。生成 JS 验证了旧存档恢复、分支展开与清除及 Reel 控制。此前 0.32.1 的浏览器验收覆盖了 More、展开、叶节点变色和刷新恢复。
 
 ## 前端部署
 
