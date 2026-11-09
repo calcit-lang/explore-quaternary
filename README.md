@@ -4,11 +4,11 @@
 
 ## 使用者影响
 
-请配对使用 Calcit 与 `@calcit/procs` **0.37.0**，重新安装依赖并构建。Less/More、展开与收起、原存档格式和页面错误提示沿用原行为。
+请配对使用 Calcit 与 `@calcit/procs` **0.38.0**，重新安装依赖并构建。Less/More、展开与收起、原存档格式和页面错误提示沿用原行为。
 
-正式模块为 Respo 0.19.5、UI 0.15.2、JS FFI 0.2.13、Reel 0.10.0，传递 Router 0.12.2。界面使用明确的应用操作，内部用 `Op | Reel.Control` 分发，继续接收旧调试事件。树分支使用 `Bool | Tag`，缺失字段通过 `Option` 表达。原状态 Map 中的额外字段继续保留。
+正式模块为 Respo 0.19.5、UI 0.15.2、JS FFI 0.2.13、Reel 0.11.0，传递 Router 0.12.2。界面操作和 Reel 调试控制分别使用类型化回调，内部用 `Op | Reel.Control` 分发。快捷键和面板操作继续适用。树分支使用 `Bool | Tag`，缺失字段通过 `Option` 表达。原状态 Map 中的额外字段继续保留。
 
-保留 `workflow` 存档键；启动先读取、解析和检查存档，再渲染、注册 watch/保存。恢复失败时中断启动，避免初始状态覆盖原文；背景见 [#11](https://github.com/calcit-lang/explore-quaternary/issues/11)。本轮不修改恢复/保存顺序。
+保留 `workflow` 存档键；启动先读取、解析和检查存档，再渲染、注册 watch/保存。恢复失败时中断启动，避免初始状态覆盖原文；背景见 [#11](https://github.com/calcit-lang/explore-quaternary/issues/11)。
 
 ## 开发与验证
 
@@ -27,8 +27,6 @@ corepack yarn dev
 ```
 
 CI 保留 all-defs、完整 strict（必须 passed 且 diagnostics 为空）、原测试、零动态方法和零弃用调用门禁，不新增项目验证脚本、强转、预算豁免或 concurrently。实时 Calcit 开发另开终端运行 `calcit -w calcit.cirru`。
-
-0.37.0 本地通过 210 个定义、完整 strict、原附带测试和 Vite 构建。生成 JS 验证了旧存档恢复、分支展开与清除及 Reel 控制。此前 0.32.1 的浏览器验收覆盖了 More、展开、叶节点变色和刷新恢复。
 
 ## 前端部署
 

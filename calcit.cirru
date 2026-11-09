@@ -49,7 +49,7 @@
               -> Unit
             -> respo.schema/Component
         'comp-container $ %{} 'CodeEntry (:doc |)
-          :code $ quote $ defcomp comp-container (reel)
+          :code $ quote $ defcomp comp-container (reel on-control)
             let
                 store $ :store reel
                 states $ as-states-map $ .unwrap-or (get store :states) ({})
@@ -105,7 +105,7 @@
                         <> $ str idx
                       comp-quaternary $ >> states idx
                 if dev?
-                  Option :some $ comp-typed-reel (>> states :reel) reel $ {}
+                  Option :some $ comp-typed-reel (>> states :reel) reel ({}) on-control
                   Option :none
                 if dev?
                   Option :some $ comp-inspect |reel states $ {} (:bottom |0px)
@@ -113,6 +113,7 @@
           :examples $ []
           :schema $ quote $ Fn
             reel.typed/State app.schema/Op $ Map Tag Dynamic
+            Fn reel.typed/Control $ -> Unit
             -> respo.schema/Component
         'comp-leaf $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defcomp comp-leaf (v? on-change)
@@ -225,27 +226,6 @@
         'dispatch! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn dispatch! (op)
             when config/dev? $ println |Dispatch: op
-            if
-              = (enum-definition op) (Option :some typed/Control)
-              dispatch-resolved! $ decode-map-as op 'reel.typed/Control
-              match (typed/decode-control op)
-                (:some control) (dispatch-resolved! control)
-                (:none)
-                  match op
-                    (:states path value)
-                      dispatch-resolved! $ schema/Op :states
-                        decode-map-as path $ List respo.schema/CoordKey
-                        , value
-                    (:clear-states path)
-                      dispatch-resolved! $ schema/Op :clear-states $ decode-map-as path (List respo.schema/CoordKey)
-                    (:hydrate-storage raw)
-                      dispatch-resolved! $ schema/Op :hydrate-storage $ decode-map-as raw (Map Tag Dynamic)
-                    _ $ eprintln "|Unknown op:" op
-            , &unit
-          :examples $ []
-          :schema $ quote $ Fn AnyEnum (-> Unit)
-        'dispatch-resolved! $ %{} 'CodeEntry (:doc |)
-          :code $ quote $ defn dispatch-resolved! (op)
             reset! *reel $ match op
               (reel.typed/Control control) (typed/apply-control updater @*reel control)
               (app.schema/Op action)
@@ -261,10 +241,12 @@
             let
                 raw $ browser/storage-get $ .unwrap (get config/site :storage-key)
               when (.some? raw)
-                dispatch! $ :: :hydrate-storage $ parse-cirru-edn (.unwrap raw)
+                dispatch! $ schema/Op :hydrate-storage $ decode-map-as
+                  parse-cirru-edn $ .unwrap raw
+                  Map Tag Dynamic
             render-app!
             add-watch! *reel :changes $ fn (reel prev) (render-app!)
-            listen-devtools! |k dispatch!
+            listen-devtools! |k on-reel-control!
             browser/add-event-listener! |beforeunload $ fn (event) (persist-storage!)
             repeat! 60 persist-storage!
             println "|App started."
@@ -275,6 +257,10 @@
             narrow-element $ .unwrap $ browser/query-selector |.app
           :examples $ []
           :schema $ quote respo.dom/DomElement
+        'on-reel-control! $ %{} 'CodeEntry (:doc |)
+          :code $ quote $ defn on-reel-control! (control) (dispatch! control)
+          :examples $ []
+          :schema $ quote $ Fn reel.typed/Control (-> Unit) (:features :js-ffi)
         'persist-storage! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn persist-storage! ()
             browser/storage-set!
@@ -295,7 +281,10 @@
           :schema $ quote $ Fn (-> Unit)
         'render-app! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn render-app! ()
-            render! mount-target (comp-container @*reel)
+            render-with! mount-target
+              fn ()
+                hint-fn $ Fn $ -> respo.schema/Component
+                comp-container @*reel on-reel-control!
               fn (op)
                 hint-fn $ Fn app.schema/Op $ -> Unit
                 dispatch! op
@@ -315,7 +304,7 @@
       :ns $ %{} 'NsEntry (:doc |)
         :code $ quote $ ns app.main
           :require
-            respo.core :refer $ render! clear-cache!
+            respo.core :refer $ render-with! clear-cache!
             app.comp.container :refer $ comp-container
             app.updater :refer $ updater
             app.schema :as schema
