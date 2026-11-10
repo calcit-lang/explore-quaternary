@@ -80,18 +80,14 @@
                         Fn app.schema/Op $ -> Unit
                         -> Unit
                       when (> size 1)
-                        d! $ Op :states cursor $ update state :size
-                          fn (value)
-                            dec $ decode-map-as value 'Number
+                        d! $ Op :resize cursor $ dec size
                       , &unit
                   span $ {} (:style style-button) (:inner-text |More)
                     :on-click $ fn (e d!)
                       hint-fn $ Fn respo.schema/RespoEvent
                         Fn app.schema/Op $ -> Unit
                         -> Unit
-                      d! $ Op :states cursor $ update state :size
-                        fn (value)
-                          inc $ decode-map-as value 'Number
+                      d! $ Op :resize cursor $ inc size
                       , &unit
                 list->
                   {} $ :style $ .merge ui/row
@@ -154,17 +150,17 @@
                       .unwrap $ get state :left?
                       , 'Bool
                     fn (v d!)
-                      d! $ Op :states cursor $ assoc state :left? v
+                      d! $ Op :edit-branch cursor $ app.schema/BranchEdit :left v
                       , &unit
                 space-x 2
                 comp-branch (>> states :a) (read-branch state :a)
                   fn (v d!)
-                    d! $ Op :states cursor $ assoc state :a v
+                    d! $ Op :edit-branch cursor $ app.schema/BranchEdit :a v
                     , &unit
                 space-x 2
                 comp-branch (>> states :b) (read-branch state :b)
                   fn (v d!)
-                    d! $ Op :states cursor $ assoc state :b v
+                    d! $ Op :edit-branch cursor $ app.schema/BranchEdit :b v
                     , &unit
                 div
                   {} $ :style $ {} (:padding-top |11px)
@@ -173,7 +169,7 @@
                       .unwrap $ get state :right?
                       , 'Bool
                     fn (v d!)
-                      d! $ Op :states cursor $ assoc state :right? v
+                      d! $ Op :edit-branch cursor $ app.schema/BranchEdit :right v
                       , &unit
           :examples $ []
           :schema $ quote $ Fn (Map Dynamic Dynamic) (-> respo.schema/Component)
@@ -318,6 +314,10 @@
             respo.ffi.browser :refer $ narrow-element
     'app.schema $ %{} 'FileEntry
       :defs $ {}
+        'BranchEdit $ %{} 'CodeEntry (:doc |)
+          :code $ quote $ defenum BranchEdit (:left Bool) (:right Bool) (:a app.schema/BranchValue) (:b app.schema/BranchValue)
+          :examples $ []
+          :schema $ quote EnumDef
         'BranchValue $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defunion BranchValue Bool Tag
           :examples $ []
@@ -325,6 +325,8 @@
         'Op $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defenum Op
             :states (List respo.schema/CoordKey) Dynamic
+            :resize (List respo.schema/CoordKey) Number
+            :edit-branch (List respo.schema/CoordKey) app.schema/BranchEdit
             :clear-states $ List respo.schema/CoordKey
             :hydrate-storage $ Map Tag Dynamic
           :examples $ []
@@ -351,24 +353,74 @@
           :examples $ []
           :schema $ quote $ Fn (Map Tag Dynamic) (List respo.schema/CoordKey)
             -> $ Map Tag Dynamic
+        'read-state-data $ %{} 'CodeEntry (:doc |)
+          :code $ quote $ defn read-state-data (store cursor fallback)
+            match
+              get-in store $ conj (prepend cursor :states) :data
+              (:ok raw)
+                if (nil? raw) fallback $ decode-map-as raw $ Map Tag Dynamic
+              (:err _) fallback
+          :examples $ []
+          :schema $ quote $ Fn (Map Tag Dynamic) (List respo.schema/CoordKey) (Map Tag Dynamic)
+            -> $ Map Tag Dynamic
         'updater $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn updater (store op op-id op-time)
             match op
               (:states cursor s)
                 decode-map-as (update-states store cursor s) (Map Tag Dynamic)
+              (:resize cursor size)
+                let
+                    state $ read-state-data store cursor $ {} (:content |) (:size 1)
+                  decode-map-as
+                    update-states store cursor $ assoc state :size size
+                    Map Tag Dynamic
+              (:edit-branch cursor edit)
+                let
+                    state $ read-state-data store cursor $ {} (:left? false) (:right? false) (:a false) (:b false)
+                    next $ match edit
+                      (:left flag) (assoc state :left? flag)
+                      (:right flag) (assoc state :right? flag)
+                      (:a value) (assoc state :a value)
+                      (:b value) (assoc state :b value)
+                  decode-map-as (update-states store cursor next) (Map Tag Dynamic)
               (:clear-states cursor) (clear-states store cursor)
               (:hydrate-storage data) data
           :examples $ []
           :schema $ quote $ Fn (Map Tag Dynamic) app.schema/Op String Number
             -> $ Map Tag Dynamic
-          :tests $ [] $ %{} 'TestEntry (:name |hydrates-stored-state)
-            :code $ quote $ is=
-              {} $ :counter 2
-              updater
-                {} $ :counter 1
-                Op :hydrate-storage $ {} $ :counter 2
-                , |test 0
-            :tags $ #{} :storage :unit
+          :tests $ []
+            %{} 'TestEntry (:name |hydrates-stored-state)
+              :code $ quote $ is=
+                {} $ :counter 2
+                updater
+                  {} $ :counter 1
+                  Op :hydrate-storage $ {} $ :counter 2
+                  , |test 0
+              :tags $ #{} :storage :unit
+            %{} 'TestEntry (:name |typed-edits-preserve-other-fields)
+              :code $ quote $ let
+                  cursor $ [] 0 :child
+                  original $ updater app.schema/store
+                    Op :resize ([]) 2
+                    , |resize 0
+                  seeded $ updater original
+                    Op :states cursor $ {} (:left? false) (:right? false) (:a false) (:b false) (:legacy |keep)
+                    , |seed 1
+                  opened $ updater seeded
+                    Op :edit-branch cursor $ app.schema/BranchEdit :a :branch
+                    , |open 2
+                  toggled $ updater opened
+                    Op :edit-branch cursor $ app.schema/BranchEdit :left true
+                    , |toggle 3
+                assert= (Result :ok 2)
+                  get-in toggled $ [] :states :data :size
+                assert= (Result :ok :branch)
+                  get-in toggled $ [] :states 0 :child :data :a
+                assert= (Result :ok true)
+                  get-in toggled $ [] :states 0 :child :data :left?
+                assert= (Result :ok |keep)
+                  get-in toggled $ [] :states 0 :child :data :legacy
+              :tags $ #{} :unit
       :ns $ %{} 'NsEntry (:doc |)
         :code $ quote $ ns app.updater
           :require
