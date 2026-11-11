@@ -19,9 +19,9 @@
                 leaf $ match v
                   (:some value)
                     match value
-                      (Bool flag) (Option :some flag)
-                      (Tag _) (Option :none)
-                  (:none) (Option :none)
+                      (Bool flag) (Some flag)
+                      (Tag _) None
+                  (:none) None
                 expanded? $ and (.some? v) (.none? leaf)
               div
                 {} $ :style $ {}
@@ -45,7 +45,7 @@
           :examples $ []
           :schema $ quote $ Fn (Map Dynamic Dynamic) (Option app.schema/BranchValue)
             Fn app.schema/BranchValue
-              Fn app.schema/Op $ -> Unit
+              Fn Op $ -> Unit
               -> Unit
             -> respo.schema/Component
         'comp-container $ %{} 'CodeEntry (:doc |)
@@ -101,14 +101,14 @@
                         <> $ str idx
                       comp-quaternary $ >> states idx
                 if dev?
-                  Option :some $ comp-typed-reel (>> states :reel) reel ({}) on-control
-                  Option :none
+                  Some $ comp-typed-reel (>> states :reel) reel ({}) on-control
+                  , None
                 if dev?
-                  Option :some $ comp-inspect |reel states $ {} (:bottom |0px)
-                  Option :none
+                  Some $ comp-inspect |reel states $ {} (:bottom |0px)
+                  , None
           :examples $ []
           :schema $ quote $ Fn
-            reel.typed/State app.schema/Op $ Map Tag Dynamic
+            reel.typed/State Op $ Map Tag Dynamic
             Fn reel.typed/Control $ -> Unit
             -> respo.schema/Component
         'comp-leaf $ %{} 'CodeEntry (:doc |)
@@ -124,7 +124,7 @@
           :examples $ []
           :schema $ quote $ Fn Bool
             Fn Bool
-              Fn app.schema/Op $ -> Unit
+              Fn Op $ -> Unit
               -> Unit
             -> respo.schema/Component
         'comp-quaternary $ %{} 'CodeEntry (:doc |)
@@ -133,7 +133,7 @@
                 cursor $ decode-map-as
                   .unwrap $ get states :cursor
                   List respo.schema/CoordKey
-                state $ decode-map-as
+                state $ read-branch-view $ decode-map-as
                   match (get states :data)
                     (:some value)
                       either value $ {} (:left? false) (:right? false) (:a false) (:b false)
@@ -145,29 +145,23 @@
                   {} $ :display |inline-flex
                 div
                   {} $ :style $ {} (:padding-top |11px)
-                  comp-leaf
-                    decode-map-as
-                      .unwrap $ get state :left?
-                      , 'Bool
+                  comp-leaf (:left? state)
                     fn (v d!)
                       d! $ Op :edit-branch cursor $ app.schema/BranchEdit :left v
                       , &unit
                 space-x 2
-                comp-branch (>> states :a) (read-branch state :a)
+                comp-branch (>> states :a) (:a state)
                   fn (v d!)
                     d! $ Op :edit-branch cursor $ app.schema/BranchEdit :a v
                     , &unit
                 space-x 2
-                comp-branch (>> states :b) (read-branch state :b)
+                comp-branch (>> states :b) (:b state)
                   fn (v d!)
                     d! $ Op :edit-branch cursor $ app.schema/BranchEdit :b v
                     , &unit
                 div
                   {} $ :style $ {} (:padding-top |11px)
-                  comp-leaf
-                    decode-map-as
-                      .unwrap $ get state :right?
-                      , 'Bool
+                  comp-leaf (:right? state)
                     fn (v d!)
                       d! $ Op :edit-branch cursor $ app.schema/BranchEdit :right v
                       , &unit
@@ -177,12 +171,25 @@
           :code $ quote $ defn read-branch (state field)
             match (get state field)
               (:some raw)
-                if (nil? raw) (Option :none)
-                  Option :some $ decode-map-as raw 'app.schema/BranchValue
-              (:none) (Option :none)
+                if (nil? raw) None $ Some $ decode-map-as raw 'app.schema/BranchValue
+              (:none) None
           :examples $ []
-          :schema $ quote $ Fn (Map Tag Dynamic) Tag
+          :schema $ quote $ Fn (Map Tag V) Tag
             -> $ Option app.schema/BranchValue
+            :generics V
+        'read-branch-view $ %{} 'CodeEntry (:doc |)
+          :code $ quote $ defn read-branch-view (state)
+            app.schema/BranchView :left?
+              decode-map-as
+                .unwrap $ get state :left?
+                , 'Bool
+              , :right?
+                decode-map-as
+                  .unwrap $ get state :right?
+                  , 'Bool
+                , :a (read-branch state :a) :b $ read-branch state :b
+          :examples $ []
+          :schema $ quote $ Fn (Map Tag V) (-> app.schema/BranchView) (:generics V)
         'style-button $ %{} 'CodeEntry (:doc |)
           :code $ quote $ def style-button
             {} (:margin "|0 6px") (:cursor |pointer) (:font-family ui/font-fancy)
@@ -218,7 +225,7 @@
           :code $ quote $ defref *reel (typed/new-reel schema/store)
           :examples $ []
           :schema $ quote $ Ref
-            reel.typed/State app.schema/Op $ Map Tag Dynamic
+            typed/State schema/Op $ Map Tag Dynamic
         'dispatch! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn dispatch! (op)
             when config/dev? $ println |Dispatch: op
@@ -229,7 +236,7 @@
                   :timestamp $ date-now-snapshot
             , &unit
           :examples $ []
-          :schema $ quote $ Fn app.schema/ResolvedOp (-> Unit) (:features :js-ffi)
+          :schema $ quote $ Fn schema/ResolvedOp (-> Unit) (:features :js-ffi)
         'main! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn main! ()
             println "|Running mode:" $ if config/dev? |dev |release
@@ -256,7 +263,7 @@
         'on-reel-control! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn on-reel-control! (control) (dispatch! control)
           :examples $ []
-          :schema $ quote $ Fn reel.typed/Control (-> Unit) (:features :js-ffi)
+          :schema $ quote $ Fn typed/Control (-> Unit) (:features :js-ffi)
         'persist-storage! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn persist-storage! ()
             browser/storage-set!
@@ -322,6 +329,12 @@
           :code $ quote $ defunion BranchValue Bool Tag
           :examples $ []
           :schema $ quote UnionDef
+        'BranchView $ %{} 'CodeEntry (:doc |)
+          :code $ quote $ defstruct BranchView (:left? Bool) (:right? Bool)
+            :a $ Option app.schema/BranchValue
+            :b $ Option app.schema/BranchValue
+          :examples $ []
+          :schema $ quote StructDef
         'Op $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defenum Op
             :states (List respo.schema/CoordKey) Dynamic
@@ -386,7 +399,7 @@
               (:clear-states cursor) (clear-states store cursor)
               (:hydrate-storage data) data
           :examples $ []
-          :schema $ quote $ Fn (Map Tag Dynamic) app.schema/Op String Number
+          :schema $ quote $ Fn (Map Tag Dynamic) Op String Number
             -> $ Map Tag Dynamic
           :tests $ []
             %{} 'TestEntry (:name |hydrates-stored-state)
