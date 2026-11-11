@@ -43,7 +43,7 @@
                     comp-leaf flag $ fn (next d!) (on-change next d!)
                   (:none) (comp-quaternary states)
           :examples $ []
-          :schema $ quote $ Fn (Map Dynamic Dynamic) (Option app.schema/BranchValue)
+          :schema $ quote $ Fn respo.schema/States (Option app.schema/BranchValue)
             Fn app.schema/BranchValue
               Fn Op $ -> Unit
               -> Unit
@@ -108,9 +108,10 @@
                   , None
           :examples $ []
           :schema $ quote $ Fn
-            reel.typed/State Op $ Map Tag Dynamic
+            reel.typed/State Op $ Map Tag V
             Fn reel.typed/Control $ -> Unit
             -> respo.schema/Component
+            :generics V
         'comp-leaf $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defcomp comp-leaf (v? on-change)
             div $ {}
@@ -166,7 +167,7 @@
                       d! $ Op :edit-branch cursor $ app.schema/BranchEdit :right v
                       , &unit
           :examples $ []
-          :schema $ quote $ Fn (Map Dynamic Dynamic) (-> respo.schema/Component)
+          :schema $ quote $ Fn respo.schema/States (-> respo.schema/Component)
         'read-branch $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn read-branch (state field)
             match (get state field)
