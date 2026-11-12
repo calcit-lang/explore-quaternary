@@ -14,7 +14,7 @@
           :code $ quote $ defcomp comp-branch (states v on-change)
             let
                 cursor $ decode-map-as
-                  .unwrap $ get states :cursor
+                  .unwrap $ &map:get states :cursor
                   List respo.schema/CoordKey
                 leaf $ match v
                   (:some value)
@@ -30,7 +30,7 @@
                     :style $ {} (:text-align |center) (:line-height |10px) (:font-size |12px) (:cursor |pointer)
                     :on-click $ fn (e d!)
                       hint-fn $ Fn respo.schema/RespoEvent
-                        Fn app.schema/Op $ -> Unit
+                        Fn Op $ -> Unit
                         -> Unit
                       if expanded?
                         do (on-change false d!)
@@ -54,13 +54,13 @@
                 store $ :store reel
                 states $ as-states-map $ .unwrap-or (get store :states) ({})
                 cursor $ decode-map-as
-                  match (get states :cursor)
+                  match (&map:get states :cursor)
                     (:some value)
                       either value $ []
                     (:none) ([])
                   List respo.schema/CoordKey
                 state $ decode-map-as
-                  match (get states :data)
+                  match (&map:get states :data)
                     (:some value)
                       either value $ {} (:content |) (:size 1)
                     (:none)
@@ -77,7 +77,7 @@
                   span $ {} (:style style-button) (:inner-text |Less)
                     :on-click $ fn (e d!)
                       hint-fn $ Fn respo.schema/RespoEvent
-                        Fn app.schema/Op $ -> Unit
+                        Fn Op $ -> Unit
                         -> Unit
                       when (> size 1)
                         d! $ Op :resize cursor $ dec size
@@ -85,7 +85,7 @@
                   span $ {} (:style style-button) (:inner-text |More)
                     :on-click $ fn (e d!)
                       hint-fn $ Fn respo.schema/RespoEvent
-                        Fn app.schema/Op $ -> Unit
+                        Fn Op $ -> Unit
                         -> Unit
                       d! $ Op :resize cursor $ inc size
                       , &unit
@@ -119,7 +119,7 @@
                 :background-color $ if v? (hsl 200 80 50) (hsl 0 0 80)
               :on-click $ fn (e d!)
                 hint-fn $ Fn respo.schema/RespoEvent
-                  Fn app.schema/Op $ -> Unit
+                  Fn Op $ -> Unit
                   -> Unit
                 on-change (not v?) d!
           :examples $ []
@@ -132,10 +132,10 @@
           :code $ quote $ defcomp comp-quaternary (states)
             let
                 cursor $ decode-map-as
-                  .unwrap $ get states :cursor
+                  .unwrap $ &map:get states :cursor
                   List respo.schema/CoordKey
                 state $ read-branch-view $ decode-map-as
-                  match (get states :data)
+                  match (&map:get states :data)
                     (:some value)
                       either value $ {} (:left? false) (:right? false) (:a false) (:b false)
                     (:none)
@@ -290,7 +290,7 @@
                 hint-fn $ Fn $ -> respo.schema/Component
                 comp-container @*reel on-reel-control!
               fn (op)
-                hint-fn $ Fn app.schema/Op $ -> Unit
+                hint-fn $ Fn schema/Op $ -> Unit
                 dispatch! op
           :examples $ []
           :schema $ quote $ Fn (-> Unit) (:features :js-ffi)
@@ -365,8 +365,9 @@
               dissoc-in store $ prepend cursor :states
               Map Tag Dynamic
           :examples $ []
-          :schema $ quote $ Fn (Map Tag Dynamic) (List respo.schema/CoordKey)
+          :schema $ quote $ Fn (Map Tag StoreValue) (List respo.schema/CoordKey)
             -> $ Map Tag Dynamic
+            :generics StoreValue
         'read-state-data $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn read-state-data (store cursor fallback)
             match
@@ -375,8 +376,9 @@
                 if (nil? raw) fallback $ decode-map-as raw $ Map Tag Dynamic
               (:err _) fallback
           :examples $ []
-          :schema $ quote $ Fn (Map Tag Dynamic) (List respo.schema/CoordKey) (Map Tag Dynamic)
+          :schema $ quote $ Fn (Map Tag StoreValue) (List respo.schema/CoordKey) (Map Tag FallbackValue)
             -> $ Map Tag Dynamic
+            :generics StoreValue FallbackValue
         'updater $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn updater (store op op-id op-time)
             match op

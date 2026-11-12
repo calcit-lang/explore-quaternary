@@ -86,6 +86,7 @@ jobs:
         echo "prefix=${asset_prefix}" >> "$GITHUB_OUTPUT"
         echo "base-url=${VITE_BASE_URL}" >> "$GITHUB_OUTPUT"
         yarn build
+        node --test tests/restored-branch.test.mjs
 
     - name: Upload and verify static assets on COS
       timeout-minutes: 10
