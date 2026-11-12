@@ -237,7 +237,7 @@
                   :timestamp $ date-now-snapshot
             , &unit
           :examples $ []
-          :schema $ quote $ Fn schema/ResolvedOp (-> Unit) (:features :js-ffi)
+          :schema $ quote $ Fn schema/ResolvedOp (-> Unit) (:features :io :js-ffi :state)
         'main! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn main! ()
             println "|Running mode:" $ if config/dev? |dev |release
@@ -255,7 +255,7 @@
             repeat! 60 persist-storage!
             println "|App started."
           :examples $ []
-          :schema $ quote $ Fn (-> Unit) (:features :js-ffi)
+          :schema $ quote $ Fn (-> Unit) (:features :io :js-ffi :state)
         'mount-target $ %{} 'CodeEntry (:doc |)
           :code $ quote $ def mount-target
             narrow-element $ .unwrap $ browser/query-selector |.app
@@ -264,14 +264,14 @@
         'on-reel-control! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn on-reel-control! (control) (dispatch! control)
           :examples $ []
-          :schema $ quote $ Fn typed/Control (-> Unit) (:features :js-ffi)
+          :schema $ quote $ Fn typed/Control (-> Unit) (:features :io :js-ffi :state)
         'persist-storage! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn persist-storage! ()
             browser/storage-set!
               .unwrap $ get config/site :storage-key
               format-cirru-edn $ :store @*reel
           :examples $ []
-          :schema $ quote $ Fn (-> Unit) (:features :js-ffi)
+          :schema $ quote $ Fn (-> Unit) (:features :js-ffi :state)
         'reload! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn reload! ()
             if (nil? build-errors)
@@ -282,7 +282,7 @@
               hud! |error build-errors
             , &unit
           :examples $ []
-          :schema $ quote $ Fn (-> Unit)
+          :schema $ quote $ Fn (-> Unit) (:features :io :state)
         'render-app! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn render-app! ()
             render-with! mount-target
@@ -293,7 +293,7 @@
                 hint-fn $ Fn schema/Op $ -> Unit
                 dispatch! op
           :examples $ []
-          :schema $ quote $ Fn (-> Unit) (:features :js-ffi)
+          :schema $ quote $ Fn (-> Unit) (:features :io :js-ffi :state)
         'repeat! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn repeat! (duration cb)
             browser/set-timeout!
@@ -338,7 +338,6 @@
           :schema $ quote StructDef
         'Op $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defenum Op
-            :states (List respo.schema/CoordKey) Dynamic
             :resize (List respo.schema/CoordKey) Number
             :edit-branch (List respo.schema/CoordKey) app.schema/BranchEdit
             :clear-states $ List respo.schema/CoordKey
@@ -382,8 +381,6 @@
         'updater $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn updater (store op op-id op-time)
             match op
-              (:states cursor s)
-                decode-map-as (update-states store cursor s) (Map Tag Dynamic)
               (:resize cursor size)
                 let
                     state $ read-state-data store cursor $ {} (:content |) (:size 1)
@@ -419,9 +416,9 @@
                   original $ updater app.schema/store
                     Op :resize ([]) 2
                     , |resize 0
-                  seeded $ updater original
-                    Op :states cursor $ {} (:left? false) (:right? false) (:a false) (:b false) (:legacy |keep)
-                    , |seed 1
+                  seeded $ decode-map-as
+                    update-states original cursor $ {} (:left? false) (:right? false) (:a false) (:b false) (:legacy |keep)
+                    Map Tag Dynamic
                   opened $ updater seeded
                     Op :edit-branch cursor $ app.schema/BranchEdit :a :branch
                     , |open 2
