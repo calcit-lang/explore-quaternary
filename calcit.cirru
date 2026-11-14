@@ -112,6 +112,7 @@
             Fn reel.typed/Control $ -> Unit
             -> respo.schema/Component
             :generics V
+            :features :state
         'comp-leaf $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defcomp comp-leaf (v? on-change)
             div $ {}
