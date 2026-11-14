@@ -353,7 +353,8 @@
             {} $ :states $ {}
               :cursor $ []
           :examples $ []
-          :schema $ quote $ Map Tag Dynamic
+          :schema $ quote $ Map Tag
+            Map Tag $ List respo.schema/CoordKey
       :ns $ %{} 'NsEntry (:doc |)
         :code $ quote $ ns app.schema
     'app.updater $ %{} 'FileEntry
@@ -399,8 +400,9 @@
               (:clear-states cursor) (clear-states store cursor)
               (:hydrate-storage data) data
           :examples $ []
-          :schema $ quote $ Fn (Map Tag Dynamic) Op String Number
+          :schema $ quote $ Fn (Map Tag StoreValue) Op String Number
             -> $ Map Tag Dynamic
+            :generics StoreValue
           :tests $ []
             %{} 'TestEntry (:name |hydrates-stored-state)
               :code $ quote $ is=
