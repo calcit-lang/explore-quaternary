@@ -353,7 +353,8 @@
             {} $ :states $ {}
               :cursor $ []
           :examples $ []
-          :schema $ quote $ Map Tag Dynamic
+          :schema $ quote $ Map Tag
+            Map Tag $ List respo.schema/CoordKey
       :ns $ %{} 'NsEntry (:doc |)
         :code $ quote $ ns app.schema
     'app.updater $ %{} 'FileEntry
