@@ -109,7 +109,7 @@
           :examples $ []
           :schema $ quote $ Fn
             reel.typed/State Op $ Map Tag V
-            Fn reel.typed/Control $ -> Unit
+            Fn reel.typed/Control (-> Unit) (:features :io :state)
             -> respo.schema/Component
             :generics V
             :features :state
@@ -303,9 +303,9 @@
             , &unit
           :examples $ []
           :schema $ quote $ Fn Number
-            Fn $ -> Unit
+            Fn (-> Unit) (:features :io :state)
             -> Unit
-            :features :js-ffi
+            :features :io :js-ffi :state
       :ns $ %{} 'NsEntry (:doc |)
         :code $ quote $ ns app.main
           :require
