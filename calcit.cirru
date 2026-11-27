@@ -246,9 +246,12 @@
             let
                 raw $ browser/storage-get $ .unwrap (get config/site :storage-key)
               when (.some? raw)
-                dispatch! $ schema/Op :hydrate-storage $ decode-map-as
-                  parse-cirru-edn $ .unwrap raw
-                  Map Tag Dynamic
+                dispatch! $ schema/Op :hydrate-storage $ try
+                  decode-map-as
+                    parse-cirru-edn $ .unwrap raw
+                    Map Tag Dynamic
+                  fn (err) (hud! |error |Invalid_saved_state)
+                    raise $ str err
             render-app!
             add-watch! *reel :changes $ fn (reel prev) (render-app!)
             listen-devtools! |k on-reel-control!
