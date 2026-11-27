@@ -4,9 +4,9 @@
 
 ## 使用者影响
 
-请配对使用 Calcit 与 `@calcit/procs` **0.45.1**，重新安装依赖并构建。Less/More、展开与收起、原存档格式和页面错误提示沿用原行为。树编辑使用具名动作，只更新对应字段。
+请配对使用 Calcit 与 `@calcit/procs` **0.46.0**，重新安装依赖并构建。Less/More、展开与收起、原存档格式和页面错误提示沿用原行为。树编辑使用具名动作，只更新对应字段。
 
-正式模块为 Respo 0.19.18、UI 0.16.5、JS FFI 0.2.24、Reel 0.11.9，传递 Router 0.12.17。界面操作和 Reel 调试控制分别使用类型化回调，内部用 `Op | Reel.Control` 分发。快捷键和面板操作继续适用。树分支使用 `Bool | Tag`，缺失字段通过 `Option` 表达。原状态 Map 中的额外字段继续保留。
+正式模块为 Respo 0.20.0、UI 0.16.6、JS FFI 0.2.26、Reel 0.11.10，传递 Router 0.12.18。界面操作和 Reel 调试控制分别使用类型化回调，内部用 `Op | Reel.Control` 分发。快捷键和面板操作继续适用。树分支使用 `Bool | Tag`，缺失字段通过 `Option` 表达。原状态 Map 中的额外字段继续保留。
 
 保留 `workflow` 存档键；启动先读取、解析和检查存档，再渲染、注册 watch/保存。恢复失败时中断启动，避免初始状态覆盖原文；背景见 [#11](https://github.com/calcit-lang/explore-quaternary/issues/11)。
 
