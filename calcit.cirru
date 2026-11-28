@@ -56,19 +56,22 @@
                 cursor $ decode-map-as
                   match (&map:get states :cursor)
                     (:some value)
-                      either value $ []
+                      if (nil? value) ([]) value
                     (:none) ([])
                   List respo.schema/CoordKey
                 state $ decode-map-as
                   match (&map:get states :data)
                     (:some value)
-                      either value $ {} (:content |) (:size 1)
+                      if (nil? value)
+                        {} (:content |) (:size 1)
+                        , value
                     (:none)
                       {} (:content |) (:size 1)
                   Map Tag Dynamic
                 size $ decode-map-as
                   match (get state :size)
-                    (:some value) (either value 1)
+                    (:some value)
+                      if (nil? value) 1 value
                     (:none) 1
                   , 'Number
               div
@@ -138,7 +141,9 @@
                 state $ read-branch-view $ decode-map-as
                   match (&map:get states :data)
                     (:some value)
-                      either value $ {} (:left? false) (:right? false) (:a false) (:b false)
+                      if (nil? value)
+                        {} (:left? false) (:right? false) (:a false) (:b false)
+                        , value
                     (:none)
                       {} (:left? false) (:right? false) (:a false) (:b false)
                   Map Tag Dynamic
