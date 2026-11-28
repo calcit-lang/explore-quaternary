@@ -46,3 +46,9 @@ test("restored nested leaf renders its saved value and dispatches its own cursor
   assert.equal(get(get(get(branch(next), "a"), "data"), "left?"), false);
   assert.equal(get(get(branch(next), "data"), "a").toString(), ":branch");
 });
+
+test("legacy nil branch data defaults while false remains invalid", () => {
+  const cursor = calcit._$L_();
+  assert.doesNotThrow(() => comp_quaternary(map(tag("cursor"), cursor, tag("data"), null)));
+  assert.throws(() => comp_quaternary(map(tag("cursor"), cursor, tag("data"), false)));
+});
